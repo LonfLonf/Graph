@@ -236,12 +236,14 @@ bool isTree(Graph_t* pGraph)
 	for (int i = 0; i < pGraph->num_vertex; i++)
 	{
 		if (visited_arr_ptr[i] == 0)
+		{
 			free(visited_arr_ptr);
 			free(pQueue);
 			return false; // Boolean Logic Here, if the first variable inside of AND is False, the output is false too.
+		}
 	}
 
-	if ((pGraph->num_vertex - 1) == count_edges(pGraph))
+	if (!((pGraph->num_vertex - 1) == count_edges(pGraph)))
 	{
 		free(visited_arr_ptr);
 		free(pQueue);
