@@ -35,3 +35,11 @@ void dfs(Graph_t* pGraph, int vertex, int* visited);
 void start_bfs(Graph_t* pGraph, int start);
 
 void bfs(Graph_t* pGraph, Queue_t* pQueue, int* visited, int start);
+
+int get_degree(Vertex_t* pVertex);
+
+int count_odd_vertices(Graph_t* pGraph);
+
+bool isEulerian(Graph_t* pGraph);
+
+bool isUnicursal(Graph_t* pGraph);

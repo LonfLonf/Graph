@@ -147,3 +147,55 @@ void start_bfs(Graph_t* pGraph, int start)
 	free(visited_arr_ptr);
 	free(pQueue);
 }
+
+int get_degree(Vertex_t* pVertex)
+{
+	Edge_t* neighbor = pVertex->head;
+	int degree = 0;
+
+	while (neighbor != NULL)
+	{
+		degree++;
+		neighbor = neighbor->next;
+	}
+
+	return degree;
+}
+
+int count_odd_vertices(Graph_t* pGraph)
+{
+	int odds = 0;
+
+	for (int i = 0; i < pGraph->num_vertex; i++)
+	{
+		int counter = 0;
+
+		Vertex_t* pVertex = (Vertex_t*)pGraph->array[i];
+		Edge_t* neigbour = pVertex->head;
+
+		while (neigbour != NULL)
+		{
+			counter++;
+			neigbour = neigbour->next;
+		}
+
+		if (!(counter % 2 == 0))
+		{
+			odds++;
+		}
+	}
+
+	return odds;
+}
+
+bool isEulerian(Graph_t *pGraph)
+{
+	int odd = count_odd_vertices(pGraph);
+	return odd == 0;
+}
+
+bool isUnicursal(Graph_t* pGraph)
+{
+	int odd = count_odd_vertices(pGraph);
+	return odd == 2;
+}
