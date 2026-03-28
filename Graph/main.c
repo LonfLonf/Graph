@@ -24,4 +24,7 @@ int main()
 
 	print_ordered_pairs(pGraph);
 
+	start_dfs(pGraph, 0);
+	printf("\n");
+	start_bfs(pGraph, 0);
 }

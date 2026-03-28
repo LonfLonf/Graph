@@ -2,6 +2,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include "queue.h"
+
+#pragma once
 
 typedef struct Edge {
 	int index_dest;
@@ -24,3 +27,11 @@ Graph_t* create_graph(int num_vertex);
 bool add_edge(Vertex_t* pArray, int dest, int weight);
 
 void print_ordered_pairs(Graph_t* pGraph);
+
+void start_dfs(Graph_t* pGraph, int vertex);
+
+void dfs(Graph_t* pGraph, int vertex, int* visited);
+
+void start_bfs(Graph_t* pGraph, int start);
+
+void bfs(Graph_t* pGraph, Queue_t* pQueue, int* visited, int start);

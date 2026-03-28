@@ -1,4 +1,5 @@
 #include "graphh.h"
+#include "queue.h"
 
 Graph_t* create_graph(int num_vertex)
 {
@@ -100,4 +101,49 @@ void start_dfs(Graph_t* pGraph, int vertex)
 	dfs(pGraph, vertex, pArr);
 
 	free(pArr);
+}
+
+void bfs(Graph_t* pGraph, Queue_t *pQueue, int* visited, int start)
+{
+	enqueue(pQueue, start);
+	visited[start] = 1;
+	
+	// Use the function dequeue, get your return and use to see the neighbours inside o pGraph
+	// And put every neighbour inside of the queue
+	// Have to create a While
+
+	// For each vertex, look for its neighbors and add them to the queue whenever you find one.
+	// Then, take the first element from the queue and add its unvisited neighbors.
+
+	while (!isEmpty(pQueue))
+	{
+		int index = dequeue(pQueue);
+
+		printf("Visitando Vertice: %d\n", index);
+
+		Vertex_t* pVertex = (Vertex_t*)pGraph->array[index];
+		Edge_t* neighbor = pVertex->head;
+
+		while (neighbor != NULL)
+		{
+			if (visited[neighbor->index_dest] == 0) // Was this guy visited ?
+			{
+				visited[neighbor->index_dest] = 1;
+				enqueue(pQueue, neighbor->index_dest);
+			}
+
+			neighbor = neighbor->next;
+		}
+	}
+}
+
+void start_bfs(Graph_t* pGraph, int start)
+{
+	int* visited_arr_ptr = (int*)calloc(pGraph->num_vertex, sizeof(int));
+	int* pQueue = create_queue(pGraph);
+
+	bfs(pGraph, pQueue, visited_arr_ptr, start);
+
+	free(visited_arr_ptr);
+	free(pQueue);
 }

@@ -22,6 +22,10 @@
     <ClCompile Include="graph.c" />
     <ClCompile Include="graphh.h" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="queue.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="queue.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
