@@ -199,3 +199,57 @@ bool isUnicursal(Graph_t* pGraph)
 	int odd = count_odd_vertices(pGraph);
 	return odd == 2;
 }
+
+int count_edges(Graph_t* pGraph)
+{
+	int edges = 0;
+
+	for (int i = 0; i < pGraph->num_vertex; i++)
+	{
+
+		Vertex_t* pVertex = (Vertex_t*)pGraph->array[i];
+		Edge_t* neigbour = pVertex->head;
+
+		while (neigbour != NULL)
+		{
+			edges++;
+			neigbour = neigbour->next;
+		}
+	}
+
+	return edges / 2;
+}
+
+bool isTree(Graph_t* pGraph)
+{
+	int* visited_arr_ptr = (int*)calloc(pGraph->num_vertex, sizeof(int));
+	int* pQueue = create_queue(pGraph);
+
+	if (visited_arr_ptr == NULL)
+	{
+		perror("Failed to allocate array visited");
+		return false;
+	}
+
+	bfs(pGraph, pQueue, visited_arr_ptr, 0);
+
+	for (int i = 0; i < pGraph->num_vertex; i++)
+	{
+		if (visited_arr_ptr[i] == 0)
+			free(visited_arr_ptr);
+			free(pQueue);
+			return false; // Boolean Logic Here, if the first variable inside of AND is False, the output is false too.
+	}
+
+	if ((pGraph->num_vertex - 1) == count_edges(pGraph))
+	{
+		free(visited_arr_ptr);
+		free(pQueue);
+		return false;
+	}
+
+	free(visited_arr_ptr);
+	free(pQueue);
+
+	return true;
+}

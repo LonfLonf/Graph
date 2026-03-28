@@ -43,3 +43,7 @@ int count_odd_vertices(Graph_t* pGraph);
 bool isEulerian(Graph_t* pGraph);
 
 bool isUnicursal(Graph_t* pGraph);
+
+bool isTree(Graph_t* pGraph);
+
+int count_edges(Graph_t* pGraph);
