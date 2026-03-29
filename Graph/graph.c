@@ -255,3 +255,56 @@ bool isTree(Graph_t* pGraph)
 
 	return true;
 }
+
+bool edge_exists(Vertex_t* pVertex, int j)
+{
+	Edge_t* neigbour = pVertex->head;
+
+	while (neigbour != NULL)
+	{
+		
+		if (neigbour->index_dest == j)
+		{
+			return true;
+		}
+
+		neigbour = neigbour->next;
+	}
+	
+
+	return false;;
+}
+
+void complete_graph(Graph_t *pGraph)
+{
+	// Each vertex has to be V - 1 neighbours
+	// After all the numbers of edges has to be (V * (V-1)) / 2
+
+	for (int i = 0; i < pGraph->num_vertex; i++)
+	{
+		Vertex_t* pVertex = (Vertex_t*)pGraph->array[i];
+		Edge_t* head = pVertex->head;
+		int count_neighbours = get_degree(pVertex);
+
+		if (count_neighbours == (pGraph->num_vertex - 1))
+		{
+			continue;
+		}
+		else
+		{
+			// Check each pair of vertices (i, j) if i isn't connect to j, call add_edge.
+			// I have the the the Vertex(I), but i have to has the Vertex(J).
+			// I can access the neighbours and see which index i can add
+;
+			Edge_t* neigbour = pVertex->head;
+
+			for (int j = 0; j < pGraph->num_vertex; j++)
+			{
+				if (i != j && !(edge_exists(pVertex, j)))
+				{
+					add_edge(pGraph->array[i], j, 10);
+				}
+			}
+		}
+	}
+}
