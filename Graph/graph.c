@@ -140,12 +140,12 @@ void bfs(Graph_t* pGraph, Queue_t *pQueue, int* visited, int start)
 void start_bfs(Graph_t* pGraph, int start)
 {
 	int* visited_arr_ptr = (int*)calloc(pGraph->num_vertex, sizeof(int));
-	int* pQueue = create_queue(pGraph);
+	Queue_t* pQueue = create_queue(pGraph);
 
 	bfs(pGraph, pQueue, visited_arr_ptr, start);
 
 	free(visited_arr_ptr);
-	free(pQueue);
+	destroy_queue(pQueue);
 }
 
 int get_degree(Vertex_t* pVertex)
@@ -223,7 +223,7 @@ int count_edges(Graph_t* pGraph)
 bool isTree(Graph_t* pGraph)
 {
 	int* visited_arr_ptr = (int*)calloc(pGraph->num_vertex, sizeof(int));
-	int* pQueue = create_queue(pGraph);
+	Queue_t* pQueue = create_queue(pGraph);
 
 	if (visited_arr_ptr == NULL)
 	{
@@ -238,7 +238,7 @@ bool isTree(Graph_t* pGraph)
 		if (visited_arr_ptr[i] == 0)
 		{
 			free(visited_arr_ptr);
-			free(pQueue);
+			destroy_queue(pQueue);
 			return false; // Boolean Logic Here, if the first variable inside of AND is False, the output is false too.
 		}
 	}
@@ -246,12 +246,12 @@ bool isTree(Graph_t* pGraph)
 	if (!((pGraph->num_vertex - 1) == count_edges(pGraph)))
 	{
 		free(visited_arr_ptr);
-		free(pQueue);
+		destroy_queue(pQueue);
 		return false;
 	}
 
 	free(visited_arr_ptr);
-	free(pQueue);
+	destroy_queue(pQueue);
 
 	return true;
 }

@@ -15,3 +15,4 @@ bool enqueue(Queue_t* pQueue, int index);
 int dequeue(Queue_t* pQueue);
 bool isFull(Queue_t* pQueue);
 bool isEmpty(Queue_t* pQueue);
+void destroy_queue(Queue_t* pQueue);

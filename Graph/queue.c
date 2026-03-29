@@ -59,3 +59,10 @@ bool isEmpty(Queue_t* pQueue)
 	else
 		return false;
 }
+
+void destroy_queue(Queue_t* pQueue) {
+	if (pQueue != NULL) {
+		free(pQueue->pArr); 
+		free(pQueue);       
+	}
+}
