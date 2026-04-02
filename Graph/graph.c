@@ -1,11 +1,13 @@
 #include "graphh.h"
 #include "queue.h"
 
-Graph_t* create_graph(int num_vertex)
+Graph_t* create_graph(int initial_capacity)
 {
+	if (initial_capacity <= 0) initial_capacity = 10;
+
 	// Creating the Dynamic Array for the Graph Struct
 	Graph_t* pGraph = (Graph_t*)malloc(sizeof(Graph_t));
-	Vertex_t** pArray = (Vertex_t**)malloc(num_vertex * sizeof(Vertex_t*));
+	Vertex_t** pArray = (Vertex_t**)malloc(initial_capacity * sizeof(Vertex_t*));
 
 	if (pArray == NULL || pGraph == NULL)
 	{
@@ -13,26 +15,50 @@ Graph_t* create_graph(int num_vertex)
 		return NULL;
 	}
 
-	pGraph->num_vertex = num_vertex;
+	pGraph->num_vertex = 0;
+	pGraph->capacity = initial_capacity;
 	pGraph->array = pArray;
 
-	// Starting the Array of Vertices
-	for (int i = 0; i < num_vertex; i++)
+	return pGraph;
+}
+
+int add_vertex(Graph_t* pGraph, Vector2 pos, Color col)
+{
+	// Se o array lotou, precisamos expandir a garagem!
+	if (pGraph->num_vertex == pGraph->capacity)
 	{
-		pArray[i] = (Vertex_t*)malloc(sizeof(Vertex_t));
+		pGraph->capacity *= 2; // Dobramos a capacidade
 
-		if (pArray[i] == NULL)
-		{
-			perror("Memory Allocation for Vertex FAILED!!!");
-			return NULL;
+		// realloc tenta aumentar o bloco de memória atual, ou move para um maior
+		Vertex_t** temp = (Vertex_t**)realloc(pGraph->array, pGraph->capacity * sizeof(Vertex_t*));
+
+		if (temp == NULL) {
+			perror("Realloc FAILED!!!");
+			return -1;
 		}
-
-		char str[80];
-		snprintf(pArray[i]->label, sizeof(pArray[i]->label), "Vertice %d", i);
-		pArray[i]->head = NULL;
+		pGraph->array = temp;
 	}
 
-	return pGraph;
+	// Criamos o novo vértice
+	int index = pGraph->num_vertex;
+	Vertex_t* new_vertex = (Vertex_t*)malloc(sizeof(Vertex_t));
+
+	if (new_vertex == NULL) {
+		perror("Memory Allocation for Vertex FAILED!!!");
+		return -1;
+	}
+
+	snprintf(new_vertex->label, sizeof(new_vertex->label), "Vertice %d", index);
+	new_vertex->head = NULL;
+	new_vertex->position = pos;
+	new_vertex->color = col;
+	new_vertex->radius = 20.0f;
+
+	
+	pGraph->array[index] = new_vertex;
+	pGraph->num_vertex++;
+
+	return index; // Retornamos o ID para saber quem foi criado
 }
 
 bool add_edge(Vertex_t* pArray, int dest, int weight)

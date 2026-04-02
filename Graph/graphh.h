@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include "raylib.h"
 #include "queue.h"
 
 #pragma once
@@ -9,20 +10,27 @@
 typedef struct Edge {
 	int index_dest;
 	int weight;
+	float thick;
 	struct Edge *next;
 } Edge_t;
 
 typedef struct Vertex {
 	char label[50];
+	float radius;
 	Edge_t* head;
+	Vector2 position;
+	Color color;
 } Vertex_t;
 
 typedef struct Graph {
-	int num_vertex;
-	Vertex_t** array;
+	int num_vertex; // Quantos vertices tem
+	int capacity; // Espaços alocados
+	Vertex_t** array; 
 } Graph_t;
 
-Graph_t* create_graph(int num_vertex);
+Graph_t* create_graph(int initial_capacity);
+
+int add_vertex(Graph_t* pGraph, Vector2 position, Color color);
 
 bool add_edge(Vertex_t* pArray, int dest, int weight);
 

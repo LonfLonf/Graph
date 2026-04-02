@@ -3,10 +3,20 @@
 
 int main()
 {
-	// Criando um grafo de teste (Caminho de 4 vértices: 0-1-2-3)
-	// Esse formato inicialmente é uma árvore e também é unicursal!
-	Graph_t* pGraph = create_graph(4);
+	// Criando um grafo com capacidade inicial de 2, para forçar o realloc e testar!
+	Graph_t* pGraph = create_graph(2);
 
+	// Posições e cores fictícias só pro terminal rodar (no Raylib virá do mouse)
+	Vector2 dummy_pos = { 0, 0 };
+	Color dummy_col = BLACK;
+
+	// Adicionando os vértices um por um (como se fossem 4 cliques)
+	add_vertex(pGraph, dummy_pos, dummy_col); // Cria o Vértice 0
+	add_vertex(pGraph, dummy_pos, dummy_col); // Cria o Vértice 1
+	add_vertex(pGraph, dummy_pos, dummy_col); // Cria o Vértice 2 (AQUI O REALLOC ACONTECE!)
+	add_vertex(pGraph, dummy_pos, dummy_col); // Cria o Vértice 3
+
+	// Agora sim podemos ligar eles!
 	add_edge(pGraph->array[0], 1, 10);
 	add_edge(pGraph->array[1], 0, 10);
 
@@ -16,7 +26,10 @@ int main()
 	add_edge(pGraph->array[2], 3, 10);
 	add_edge(pGraph->array[3], 2, 10);
 
-	printf("=== ESTRUTURA INICIAL ===\n");
+	printf("=== ESTRUTURA DINÂMICA FUNCIONANDO ===\n");
+	printf("Total de Vértices: %d\n", pGraph->num_vertex);
+	printf("Capacidade Atual da Memória: %d\n\n", pGraph->capacity);
+
 	print_ordered_pairs(pGraph);
 
 	printf("=== TESTE DA ÁRVORE ===\n");
