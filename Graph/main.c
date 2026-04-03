@@ -34,10 +34,12 @@ int main(void)
         bool hoverBFS = CheckCollisionPointRec(mousePosition, btnBFS);
         bool hoverClear = CheckCollisionPointRec(mousePosition, btnClear);
 
+        bool mouseOnButtons = hoverComplete || hoverDFS || hoverBFS || hoverClear;
+
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
 
-            if (!check_collision(pGraph, mousePosition))
+            if (!check_collision(pGraph, mousePosition) && !mouseOnButtons)
             {
                 add_vertex(pGraph, mousePosition, PINK);
                 status_isUnicursal = isUnicursal(pGraph);

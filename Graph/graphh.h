@@ -23,8 +23,8 @@ typedef struct Vertex {
 } Vertex_t;
 
 typedef struct Graph {
-	int num_vertex; // Quantos vertices tem
-	int capacity; // Espaços alocados
+	int num_vertex;
+	int capacity; 
 	Vertex_t** array; 
 } Graph_t;
 
