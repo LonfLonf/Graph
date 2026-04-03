@@ -23,11 +23,60 @@ O **Xablau** é um editor de grafos interativo desenvolvido em **C** utilizando 
 * `gui.c / gui.h`: Funções de auxílio para a interface e colisões.
 * `queue.c / queue.h`: Implementação de fila para suporte ao BFS.
 
+## 🧠 Structs
+### Graphh.h
+#### Edge_t
+```
+typedef struct Edge {
+	int index_dest;
+	int weight;
+	float thick;
+	struct Edge *next;
+} Edge_t;
+```
+#### Vertex_t
+```
+typedef struct Vertex {
+	char label[50];
+	float radius;
+	Edge_t* head;
+	Vector2 position;
+	Color color;
+} Vertex_t;
+```
+
+#### Graph_t
+```
+typedef struct Graph {
+	int num_vertex;
+	int capacity; 
+	Vertex_t** array; 
+} Graph_t;
+```
+
+### queue.h
+#### Queue_t
+```
+typedef struct Queue {
+	int start;
+	int end;
+	int capacity;
+	int* pArr;
+} Queue_t;
+```
+
 ## 🧠 Explicação das Funções
 
 > *Espaço reservado para a sua explicação detalhada das funções do sistema.*
 
----
+### Graphh.h
+#### `Graph_t* create_graph(int initial_capacity)`:
+A função create_graph é responsável pela criação da struct Graph_t. Essa função é obrigatoria a ser declarada antes do uso de qualquer funcionalidade disponivel.
+
+#### `int add_vertex(Graph_t* pGraph, Vector2 position, Color color);`:
+Função responsável por criar um adicionar após o clique do usuario um vertex. Para utilizar essa função antes é necessario ter criado o Grafo, pegar o Vector2 com a função GetMousePosition() e por ultimo colocar alguma color que no nosso código será PINK.
+Dentro do código da função é possivel ver no primeiro bloco um check para consultar se a capacidade do Grafo está cheia, caso esteja dobramos a capacidade e damos um realloc e retornamos o novo ponteiro para a nova struct do Grafo.
+Caso não esteja cheio o Grafo temos um processo de inicialização padrão da struct Vertex_t.
 
 ## ⚙️ Como Compilar e Rodar
 
