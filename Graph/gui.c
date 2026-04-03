@@ -50,3 +50,11 @@ void DrawGridBackground(int screenWidth, int screenHeight, int spacing)
         DrawLine(0, y, screenWidth, y, gridColor);
     }
 }
+
+void clean_graph(Graph_t* pGraph)
+{
+    for (int i = 0; i < pGraph->num_vertex; i++)
+    {
+        pGraph->array[i]->color = PINK;
+    }
+}

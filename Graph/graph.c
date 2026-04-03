@@ -98,7 +98,6 @@ void print_ordered_pairs(Graph_t* pGraph)
 	}
 }
 
-
 void dfs(Graph_t* pGraph, int vertex, int* visited)
 {
 	visited[vertex] = 1;

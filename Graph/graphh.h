@@ -40,7 +40,7 @@ void start_dfs(Graph_t* pGraph, int vertex);
 
 void dfs(Graph_t* pGraph, int vertex, int* visited);
 
-void start_bfs(Graph_t* pGraph, int start);
+void start_bfs(Graph_t* pGraph, Queue_t* pQueue, int start);
 
 void bfs(Graph_t* pGraph, Queue_t* pQueue, int* visited, int start);
 

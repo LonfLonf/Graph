@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "graphh.h"
 #include "gui.h"
+#include "stack.h"
 
 int main(void)
 {
@@ -16,6 +17,18 @@ int main(void)
     bool status_isTree = false;
     bool status_isUnicursal = false;
     bool status_isEulerian = false;
+
+    bool isDfsRunning = false;
+    float dfsTimer = 0.0f;
+    float dfsDelay = 0.5f; 
+    int* visited_dfs = NULL;
+    Stack_t* pStack = create_stack(pGraph->num_vertex);
+
+    bool isBfsRunning = false;
+    float bfsTimer = 0.0f;
+    float bfsDelay = 0.9f;
+    int* visited_bfs = NULL;
+    Queue_t* pQueueBfs = NULL;
 
     SetTargetFPS(60);
 
@@ -50,15 +63,32 @@ int main(void)
                 complete_graph(pGraph);
                 status_isTree = isTree(pGraph); 
             }
+
             if (hoverDFS && pGraph->num_vertex > 0) {
-                start_dfs(pGraph, 0);
+                if (!isDfsRunning) {
+                    isDfsRunning = true;
+                    dfsTimer = 0.0f;
+                    visited_dfs = (int*)calloc(pGraph->num_vertex, sizeof(int));
+                    pStack = create_stack(10);
+                    push(pStack, 0);
+                }
             }
+
             if (hoverBFS && pGraph->num_vertex > 0) {
-                start_bfs(pGraph, 0);
+                if (!isBfsRunning)
+                {
+                    isBfsRunning = true;
+                    bfsTimer = 0.0f;
+                    visited_bfs = (int*)calloc(pGraph->num_vertex, sizeof(int));
+                    pQueueBfs = create_queue(pGraph);
+
+                    visited_bfs[0] = 1;
+                    enqueue(pQueueBfs, 0);
+                }
             }
+
             if (hoverClear) {
-                pGraph->num_vertex = 0;
-                status_isTree = isTree(pGraph);
+                clean_graph(pGraph);
             }
         }
 
@@ -83,6 +113,75 @@ int main(void)
                     }
 
                     selected_vertex = -1;
+                }
+            }
+        }
+
+        if (isDfsRunning) {
+            dfsTimer += GetFrameTime();
+
+            if (dfsTimer >= dfsDelay) {
+                dfsTimer = 0.0f;
+
+                if (!isStackEmpty(pStack)) {
+                    int current = pop(pStack);
+
+                    if (visited_dfs[current] == 0) {
+                        visited_dfs[current] = 1;
+                        pGraph->array[current]->color = DARKBLUE; 
+                        printf("Visitando: %d\n", current);
+
+                        Edge_t* neighbor = pGraph->array[current]->head;
+                        while (neighbor != NULL) {
+                            if (visited_dfs[neighbor->index_dest] == 0) {
+                                push(pStack, neighbor->index_dest);
+                                pGraph->array[neighbor->index_dest]->color = SKYBLUE;
+                            }
+                            neighbor = neighbor->next;
+                        }
+                    }
+                }
+                else {
+
+                    isDfsRunning = false;
+                    if (visited_dfs) free(visited_dfs);
+                    if (pStack) destroy_stack(pStack);
+                    visited_dfs = NULL;
+                    pStack = NULL;
+                }
+            }
+        }
+
+        if (isBfsRunning) {
+            bfsTimer += GetFrameTime();
+
+            if (bfsTimer >= bfsDelay) {
+                bfsTimer = 0.0f;
+
+                if (!isEmpty(pQueueBfs)) {
+                    int current = dequeue(pQueueBfs);
+
+                    pGraph->array[current]->color = DARKBLUE;
+                    printf("BFS Visitando: %d\n", current);
+
+                    Edge_t* neighbor = pGraph->array[current]->head;
+                    while (neighbor != NULL) {
+                        int dest = neighbor->index_dest;
+                        if (visited_bfs[dest] == 0) {
+                            visited_bfs[dest] = 1; 
+                            enqueue(pQueueBfs, dest);
+
+                            pGraph->array[dest]->color = SKYBLUE;
+                        }
+                        neighbor = neighbor->next;
+                    }
+                }
+                else {
+                    isBfsRunning = false;
+                    if (visited_bfs) free(visited_bfs);
+                    if (pQueueBfs) destroy_queue(pQueueBfs); 
+                    visited_bfs = NULL;
+                    pQueueBfs = NULL;
                 }
             }
         }
