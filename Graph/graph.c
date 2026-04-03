@@ -24,12 +24,12 @@ Graph_t* create_graph(int initial_capacity)
 
 int add_vertex(Graph_t* pGraph, Vector2 pos, Color col)
 {
-	// Se o array lotou, precisamos expandir a garagem!
+	
 	if (pGraph->num_vertex == pGraph->capacity)
 	{
-		pGraph->capacity *= 2; // Dobramos a capacidade
+		pGraph->capacity *= 2; 
 
-		// realloc tenta aumentar o bloco de memória atual, ou move para um maior
+		
 		Vertex_t** temp = (Vertex_t**)realloc(pGraph->array, pGraph->capacity * sizeof(Vertex_t*));
 
 		if (temp == NULL) {
@@ -58,7 +58,7 @@ int add_vertex(Graph_t* pGraph, Vector2 pos, Color col)
 	pGraph->array[index] = new_vertex;
 	pGraph->num_vertex++;
 
-	return index; // Retornamos o ID para saber quem foi criado
+	return index;
 }
 
 bool add_edge(Vertex_t* pArray, int dest, int weight)

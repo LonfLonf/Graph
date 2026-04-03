@@ -1,64 +1,114 @@
-#include <stdio.h>
+#include "raylib.h"
 #include "graphh.h"
+#include "gui.h"
 
-int main()
+int main(void)
 {
-	// Criando um grafo com capacidade inicial de 2, para forçar o realloc e testar!
-	Graph_t* pGraph = create_graph(2);
+    InitWindow(800, 450, "Xablau");
 
-	// Posições e cores fictícias só pro terminal rodar (no Raylib virá do mouse)
-	Vector2 dummy_pos = { 0, 0 };
-	Color dummy_col = BLACK;
+    Vector2 nodePosition = { 400.0f, 225.0f };
+    float nodeRadius = 15.0f;
+    bool isDragging = false;
 
-	// Adicionando os vértices um por um (como se fossem 4 cliques)
-	add_vertex(pGraph, dummy_pos, dummy_col); // Cria o Vértice 0
-	add_vertex(pGraph, dummy_pos, dummy_col); // Cria o Vértice 1
-	add_vertex(pGraph, dummy_pos, dummy_col); // Cria o Vértice 2 (AQUI O REALLOC ACONTECE!)
-	add_vertex(pGraph, dummy_pos, dummy_col); // Cria o Vértice 3
+    Graph_t* pGraph = create_graph(4);
+    int selected_vertex = -1;
 
-	// Agora sim podemos ligar eles!
-	add_edge(pGraph->array[0], 1, 10);
-	add_edge(pGraph->array[1], 0, 10);
+    SetTargetFPS(60);
 
-	add_edge(pGraph->array[1], 2, 10);
-	add_edge(pGraph->array[2], 1, 10);
+    while (!WindowShouldClose())
+    {
+        // Vector2 mousePos = GetMousePosition();
 
-	add_edge(pGraph->array[2], 3, 10);
-	add_edge(pGraph->array[3], 2, 10);
+        // Talvez criar uma função do tipo: Checar se existe algum vertice naquela posição
+        // Ou posso fazer com um loop tb
+        //bool isHovering = CheckCollisionPointCircle(mousePos, nodePosition, nodeRadius);
 
-	printf("=== ESTRUTURA DINÂMICA FUNCIONANDO ===\n");
-	printf("Total de Vértices: %d\n", pGraph->num_vertex);
-	printf("Capacidade Atual da Memória: %d\n\n", pGraph->capacity);
+        //if (isHovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+        //    isDragging = true;
+        //}
 
-	print_ordered_pairs(pGraph);
+        //if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+        //    isDragging = false;
+        //}
 
-	printf("=== TESTE DA ÁRVORE ===\n");
-	if (isTree(pGraph)) {
-		printf("Resultado: É UMA ÁRVORE! 🌲\n");
-	}
-	else {
-		printf("Resultado: NÃO é uma árvore.\n");
-	}
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        {
+            Vector2 mousePosition = GetMousePosition();
+            if (!check_collision(pGraph, mousePosition))
+            {
+                add_vertex(pGraph, mousePosition, PINK);
+            }
+        }
 
-	printf("\n=== TESTE EULERIANO E UNICURSAL ===\n");
-	printf("É Euleriano (Ciclo fechado)? %s\n", isEulerian(pGraph) ? "Sim" : "Nao");
-	printf("É Unicursal (Caminho que não fecha)? %s\n", isUnicursal(pGraph) ? "Sim" : "Nao");
+        if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+        {
+            Vector2 mousePosition = GetMousePosition();
+            Vertex_t* clickedVertex = get_vertex_by_position(pGraph, mousePosition);
 
-	printf("\n=== COMPLETANDO O GRAFO ===\n");
-	printf("Transformando em Grafo Completo (K4)...\n");
-	complete_graph(pGraph);
+            if (clickedVertex != -1)
+            {
+                if (selected_vertex == -1)
+                {
+                    selected_vertex = clickedVertex;
+                }
+                else
+                {
+                    if (selected_vertex != clickedVertex)
+                    {
+                        add_edge(pGraph->array[selected_vertex], clickedVertex, 10);
+                    }
 
-	printf("\nNovas Conexoes (Todos conhecem todos):\n");
-	print_ordered_pairs(pGraph);
+                    selected_vertex = -1;
+                }
+            }
+        }
 
-	// Testando a árvore novamente após completar (agora cheio de ciclos, não deve ser árvore)
-	printf("=== TESTE DA ÁRVORE (APÓS COMPLETAR) ===\n");
-	if (isTree(pGraph)) {
-		printf("Resultado: É UMA ÁRVORE! 🌲\n");
-	}
-	else {
-		printf("Resultado: NÃO é mais uma árvore (encontramos ciclos!).\n");
-	}
 
-	return 0;
+        if (isDragging) {
+            Vector2 delta = GetMouseDelta();
+            nodePosition.x += delta.x;
+            nodePosition.y += delta.y;
+        }
+
+        BeginDrawing();
+            ClearBackground(RAYWHITE);
+
+            for (int i = 0; i < pGraph->num_vertex; i++)
+            {
+                Vertex_t* pVertex = (Vertex_t*)pGraph->array[i];
+                Edge_t* pEdge_head = pVertex->head;
+
+                while (pEdge_head != NULL)
+                {
+                    int index_destino = pEdge_head->index_dest;
+
+                    Vertex_t* pDestino = (Vertex_t*)pGraph->array[index_destino];
+
+                    DrawLineEx(pVertex->position, pDestino->position, 3.0f, DARKGRAY);
+
+                    int midX = (pVertex->position.x + pDestino->position.x) / 2;
+                    int midY = (pVertex->position.y + pDestino->position.y) / 2;
+
+                    DrawText(TextFormat("%d", pEdge_head->weight), midX - 10, midY - 10, 20, RED);
+
+                    pEdge_head = pEdge_head->next;
+                }
+            }
+
+            for (int i = 0; i < pGraph->num_vertex; i++)
+            {
+                Vertex_t* pVertex = (Vertex_t*)pGraph->array[i];
+                DrawCircleV(pVertex->position, pVertex->radius, pVertex->color);
+
+                DrawText(TextFormat("%d", i), pVertex->position.x - 5, pVertex->position.y - 10, 20, WHITE);
+            }
+ 
+            DrawText(TextFormat("Mouse X: %.2f", GetMousePosition().x), 10, 10, 20, BLUE);
+            DrawText(TextFormat("Mouse Y: %.2f", GetMousePosition().y), 10, 30, 20, BLUE);
+
+        EndDrawing();
+    }
+
+    CloseWindow();
+    return 0;
 }
