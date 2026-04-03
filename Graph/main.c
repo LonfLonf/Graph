@@ -4,46 +4,66 @@
 
 int main(void)
 {
-    InitWindow(800, 450, "Xablau");
+    int screenWidth = 1780;
+    int screenHeight = 1000;
 
-    Vector2 nodePosition = { 400.0f, 225.0f };
-    float nodeRadius = 15.0f;
+    InitWindow(screenWidth, screenHeight, "Xablau");
+
     bool isDragging = false;
 
     Graph_t* pGraph = create_graph(4);
     int selected_vertex = -1;
+    bool status_isTree = false;
+    bool status_isUnicursal = false;
+    bool status_isEulerian = false;
 
     SetTargetFPS(60);
 
     while (!WindowShouldClose())
     {
-        // Vector2 mousePos = GetMousePosition();
 
-        // Talvez criar uma função do tipo: Checar se existe algum vertice naquela posição
-        // Ou posso fazer com um loop tb
-        //bool isHovering = CheckCollisionPointCircle(mousePos, nodePosition, nodeRadius);
+        Rectangle btnComplete = { 20, 240, 280, 30 };
+        Rectangle btnDFS = { 20, 280, 280, 30 };
+        Rectangle btnBFS = { 20, 320, 280, 30 };
+        Rectangle btnClear = { 20, 360, 280, 30 };
 
-        //if (isHovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-        //    isDragging = true;
-        //}
+        Vector2 mousePosition = GetMousePosition();
 
-        //if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-        //    isDragging = false;
-        //}
+        bool hoverComplete = CheckCollisionPointRec(mousePosition, btnComplete);
+        bool hoverDFS = CheckCollisionPointRec(mousePosition, btnDFS);
+        bool hoverBFS = CheckCollisionPointRec(mousePosition, btnBFS);
+        bool hoverClear = CheckCollisionPointRec(mousePosition, btnClear);
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            Vector2 mousePosition = GetMousePosition();
+
             if (!check_collision(pGraph, mousePosition))
             {
                 add_vertex(pGraph, mousePosition, PINK);
+                status_isUnicursal = isUnicursal(pGraph);
+                status_isEulerian = isEulerian(pGraph);
+            }
+
+            if (hoverComplete) {
+                complete_graph(pGraph);
+                status_isTree = isTree(pGraph); 
+            }
+            if (hoverDFS && pGraph->num_vertex > 0) {
+                start_dfs(pGraph, 0);
+            }
+            if (hoverBFS && pGraph->num_vertex > 0) {
+                start_bfs(pGraph, 0);
+            }
+            if (hoverClear) {
+                pGraph->num_vertex = 0;
+                status_isTree = isTree(pGraph);
             }
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
         {
             Vector2 mousePosition = GetMousePosition();
-            Vertex_t* clickedVertex = get_vertex_by_position(pGraph, mousePosition);
+            int clickedVertex = get_vertex_by_position(pGraph, mousePosition);
 
             if (clickedVertex != -1)
             {
@@ -56,6 +76,8 @@ int main(void)
                     if (selected_vertex != clickedVertex)
                     {
                         add_edge(pGraph->array[selected_vertex], clickedVertex, 10);
+                        add_edge(pGraph->array[clickedVertex], selected_vertex, 10);
+                        status_isTree = isTree(pGraph);
                     }
 
                     selected_vertex = -1;
@@ -63,15 +85,10 @@ int main(void)
             }
         }
 
-
-        if (isDragging) {
-            Vector2 delta = GetMouseDelta();
-            nodePosition.x += delta.x;
-            nodePosition.y += delta.y;
-        }
-
         BeginDrawing();
             ClearBackground(RAYWHITE);
+            
+            DrawGridBackground(screenWidth, screenHeight, 40);
 
             for (int i = 0; i < pGraph->num_vertex; i++)
             {
@@ -103,8 +120,85 @@ int main(void)
                 DrawText(TextFormat("%d", i), pVertex->position.x - 5, pVertex->position.y - 10, 20, WHITE);
             }
  
-            DrawText(TextFormat("Mouse X: %.2f", GetMousePosition().x), 10, 10, 20, BLUE);
-            DrawText(TextFormat("Mouse Y: %.2f", GetMousePosition().y), 10, 30, 20, BLUE);
+            DrawRectangle(10, 10, 300, 210, Fade(BLACK, 0.8f));
+            DrawRectangleLines(10, 10, 300, 210, GRAY);
+
+            DrawText("ANÁLISE DO GRAFO", 30, 20, 20, WHITE);
+            DrawLine(20, 45, 290, 45, DARKGRAY);
+
+            DrawText(TextFormat("Mouse X: %.0f", GetMousePosition().x), 30, 55, 20, SKYBLUE);
+            DrawText(TextFormat("Mouse Y: %.0f", GetMousePosition().y), 160, 55, 20, SKYBLUE);
+
+            DrawLine(20, 85, 290, 85, DARKGRAY); 
+
+            DrawText("Euleriano:", 30, 100, 20, LIGHTGRAY);
+            DrawText(status_isEulerian ? "SIM" : "NÃO", 180, 100, 20, status_isEulerian ? LIME : RED);
+
+            DrawText("Unicursal:", 30, 125, 20, LIGHTGRAY);
+            DrawText(status_isUnicursal ? "SIM" : "NÃO", 180, 125, 20, status_isUnicursal ? LIME : RED);
+
+            DrawText("Árvore:", 30, 150, 20, LIGHTGRAY);
+            DrawText(status_isTree ? "SIM" : "NÃO", 180, 150, 20, status_isTree ? LIME : RED);
+
+            DrawText(TextFormat("Pares Ordenados: %d", count_edges(pGraph)), 30, 180, 20, ORANGE);
+
+            int panelWidth = 250;
+            int panelX = GetScreenWidth() - panelWidth - 10;
+            int panelY = 10;
+
+
+            DrawRectangle(panelX, panelY, panelWidth, 850, Fade(BLACK, 0.8f));
+            DrawRectangleLines(panelX, panelY, panelWidth, 850, GRAY);
+
+            DrawText("LISTA DE ADJACÊNCIA", panelX + 20, panelY + 20, 17, WHITE);
+            DrawLine(panelX + 10, panelY + 45, panelX + panelWidth - 10, panelY + 45, DARKGRAY);
+
+            int offsetY = panelY + 60;
+            bool list_full = false;
+
+            for (int i = 0; i < pGraph->num_vertex; i++)
+            {
+                if (list_full) break; 
+
+                Vertex_t* pVertex = (Vertex_t*)pGraph->array[i];
+                Edge_t* pEdge_head = pVertex->head;
+
+                while (pEdge_head != NULL)
+                {
+                    
+                    if (offsetY > panelY + 810)
+                    {
+                        DrawText("...", panelX + 20, offsetY, 20, ORANGE);
+                        list_full = true;
+                        break;
+                    }
+
+                    DrawText(TextFormat("Origem: %d -> Destino: %d", i, pEdge_head->index_dest), panelX + 20, offsetY, 20, LIGHTGRAY);
+
+                    offsetY += 25;
+
+                    pEdge_head = pEdge_head->next;
+                }
+            }
+
+            DrawRectangle(10, 230, 300, 170, Fade(BLACK, 0.8f));
+            DrawRectangleLines(10, 230, 300, 170, GRAY);
+
+            DrawRectangleRec(btnComplete, hoverComplete ? LIGHTGRAY : DARKGRAY);
+            DrawRectangleLinesEx(btnComplete, 1, BLACK);
+            DrawText("COMPLETAR GRAFO", btnComplete.x + 45, btnComplete.y + 5, 20, hoverComplete ? BLACK : WHITE);
+
+            DrawRectangleRec(btnDFS, hoverDFS ? LIGHTGRAY : DARKGRAY);
+            DrawRectangleLinesEx(btnDFS, 1, BLACK);
+            DrawText("BUSCA DFS", btnDFS.x + 85, btnDFS.y + 5, 20, hoverDFS ? BLACK : WHITE);
+
+            DrawRectangleRec(btnBFS, hoverBFS ? LIGHTGRAY : DARKGRAY);
+            DrawRectangleLinesEx(btnBFS, 1, BLACK);
+            DrawText("BUSCA BFS", btnBFS.x + 85, btnBFS.y + 5, 20, hoverBFS ? BLACK : WHITE);
+
+            DrawRectangleRec(btnClear, hoverClear ? LIGHTGRAY : MAROON);
+            DrawRectangleLinesEx(btnClear, 1, BLACK);
+            DrawText("LIMPAR TELA", btnClear.x + 75, btnClear.y + 5, 20, hoverClear ? BLACK : WHITE);
 
         EndDrawing();
     }
