@@ -5,7 +5,6 @@ Graph_t* create_graph(int initial_capacity)
 {
 	if (initial_capacity <= 0) initial_capacity = 10;
 
-	// Creating the Dynamic Array for the Graph Struct
 	Graph_t* pGraph = (Graph_t*)malloc(sizeof(Graph_t));
 	Vertex_t** pArray = (Vertex_t**)malloc(initial_capacity * sizeof(Vertex_t*));
 
@@ -29,7 +28,6 @@ int add_vertex(Graph_t* pGraph, Vector2 pos, Color col)
 	{
 		pGraph->capacity *= 2; 
 
-		
 		Vertex_t** temp = (Vertex_t**)realloc(pGraph->array, pGraph->capacity * sizeof(Vertex_t*));
 
 		if (temp == NULL) {
@@ -39,7 +37,6 @@ int add_vertex(Graph_t* pGraph, Vector2 pos, Color col)
 		pGraph->array = temp;
 	}
 
-	// Criamos o novo vértice
 	int index = pGraph->num_vertex;
 	Vertex_t* new_vertex = (Vertex_t*)malloc(sizeof(Vertex_t));
 
@@ -80,6 +77,7 @@ bool add_edge(Vertex_t* pArray, int dest, int weight)
 	return true;
 }
 
+
 void print_ordered_pairs(Graph_t* pGraph)
 {
 	int i = 0;
@@ -99,6 +97,7 @@ void print_ordered_pairs(Graph_t* pGraph)
 		printf("\n");
 	}
 }
+
 
 void dfs(Graph_t* pGraph, int vertex, int* visited)
 {
@@ -129,17 +128,11 @@ void start_dfs(Graph_t* pGraph, int vertex)
 	free(pArr);
 }
 
+// BFS -> Breadth-First Search
 void bfs(Graph_t* pGraph, Queue_t *pQueue, int* visited, int start)
 {
 	enqueue(pQueue, start);
 	visited[start] = 1;
-	
-	// Use the function dequeue, get your return and use to see the neighbours inside o pGraph
-	// And put every neighbour inside of the queue
-	// Have to create a While
-
-	// For each vertex, look for its neighbors and add them to the queue whenever you find one.
-	// Then, take the first element from the queue and add its unvisited neighbors.
 
 	while (!isEmpty(pQueue))
 	{
@@ -152,7 +145,7 @@ void bfs(Graph_t* pGraph, Queue_t *pQueue, int* visited, int start)
 
 		while (neighbor != NULL)
 		{
-			if (visited[neighbor->index_dest] == 0) // Was this guy visited ?
+			if (visited[neighbor->index_dest] == 0)
 			{
 				visited[neighbor->index_dest] = 1;
 				enqueue(pQueue, neighbor->index_dest);
@@ -265,7 +258,7 @@ bool isTree(Graph_t* pGraph)
 		{
 			free(visited_arr_ptr);
 			destroy_queue(pQueue);
-			return false; // Boolean Logic Here, if the first variable inside of AND is False, the output is false too.
+			return false; 
 		}
 	}
 
@@ -303,8 +296,6 @@ bool edge_exists(Vertex_t* pVertex, int j)
 
 void complete_graph(Graph_t *pGraph)
 {
-	// Each vertex has to be V - 1 neighbours
-	// After all the numbers of edges has to be (V * (V-1)) / 2
 
 	for (int i = 0; i < pGraph->num_vertex; i++)
 	{
@@ -318,10 +309,6 @@ void complete_graph(Graph_t *pGraph)
 		}
 		else
 		{
-			// Check each pair of vertices (i, j) if i isn't connect to j, call add_edge.
-			// I have the the the Vertex(I), but i have to has the Vertex(J).
-			// I can access the neighbours and see which index i can add
-;
 			Edge_t* neigbour = pVertex->head;
 
 			for (int j = 0; j < pGraph->num_vertex; j++)
