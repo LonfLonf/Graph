@@ -20,7 +20,10 @@ int main(int argc, char* argv[])
     int screenWidth = 1780;
     int screenHeight = 1000;
 
-    InitWindow(screenWidth, screenHeight, "Xablau");
+    InitWindow(screenWidth, screenHeight, "Editor de Grafos");
+
+    Image logo = LoadImage("logo.png");
+    SetWindowIcon(logo);
 
     bool isDragging = false;
 
@@ -302,6 +305,7 @@ int main(int argc, char* argv[])
         EndDrawing();
     }
 
+    UnloadImage(logo);
     CloseWindow();
     return 0;
 }
