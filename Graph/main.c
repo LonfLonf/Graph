@@ -3,14 +3,13 @@
 #include "gui.h"
 #include "stack.h"
 
-int main(void)
+int main(int argc, char* argv[])
 {
-    bool bobo = false;
     Graph_t* pGraph = NULL;
 
-    if (!bobo)
+    if (argc > 1)
     {
-        load_graph_debug("test.graph", &pGraph);
+        load_graph_debug(argv[1], &pGraph);
     }
     else
     {
