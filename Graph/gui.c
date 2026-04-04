@@ -62,9 +62,21 @@ void clean_graph(Graph_t* pGraph)
     }
 }
 
+char* create_file_name(Graph_t* pGraph)
+{
+    char* name = (char*)malloc(30 * sizeof(char));
+    if (name == NULL) return NULL;
+
+    sprintf_s(name, 30, "%d_%d.graph", pGraph->capacity, pGraph->num_vertex);
+
+    return name;
+}
+
 void save_graph(Graph_t* pGraph, int edges)
 {
-    FILE* pFile = fopen("test.graph", "wb");
+    char* name_file = create_file_name(pGraph);
+
+    FILE* pFile = fopen(name_file, "wb");
 
     if (pFile == NULL)
     {
@@ -117,6 +129,7 @@ void save_graph(Graph_t* pGraph, int edges)
         }
     }
 
+    free(name_file);
     fclose(pFile);
 }
 

@@ -16,3 +16,4 @@ void DrawGridBackground(int screenWidth, int screenHeight, int spacing);
 void clean_graph(Graph_t* pGraph);
 void save_graph(Graph_t* pGraph, int edges);
 void load_graph_debug(const char* filename, Graph_t** pGraph);
+char* create_file_name(Graph_t* pGraph);
