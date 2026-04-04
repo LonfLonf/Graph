@@ -88,3 +88,5 @@ int count_edges(Graph_t* pGraph);
 void complete_graph(Graph_t *pGraph);
 
 bool edge_exists(Vertex_t* pVertex, int j);
+
+int create_random_weights();

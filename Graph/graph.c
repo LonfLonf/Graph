@@ -325,9 +325,14 @@ void complete_graph(Graph_t *pGraph)
 			{
 				if (i != j && !(edge_exists(pVertex, j)))
 				{
-					add_edge(pGraph->array[i], j, 10);
+					add_edge(pGraph->array[i], j, create_random_weights());
 				}
 			}
 		}
 	}
+}
+
+int create_random_weights()
+{
+	return (rand() % 15) + 1;
 }

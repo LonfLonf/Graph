@@ -5,6 +5,7 @@
 
 int main(int argc, char* argv[])
 {
+    srand(time(NULL));
     Graph_t* pGraph = NULL;
 
     if (argc > 1)
@@ -127,8 +128,9 @@ int main(int argc, char* argv[])
                 {
                     if (selected_vertex != clickedVertex)
                     {
-                        add_edge(pGraph->array[selected_vertex], clickedVertex, 10);
-                        add_edge(pGraph->array[clickedVertex], selected_vertex, 10);
+                        int weight = create_random_weights();
+                        add_edge(pGraph->array[selected_vertex], clickedVertex, weight);
+                        add_edge(pGraph->array[clickedVertex], selected_vertex, weight);
                         status_isTree = isTree(pGraph);
                         status_isEulerian = isEulerian(pGraph);
                         status_isUnicursal = isUnicursal(pGraph);
