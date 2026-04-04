@@ -55,13 +55,16 @@ int main(void)
             if (!check_collision(pGraph, mousePosition) && !mouseOnButtons)
             {
                 add_vertex(pGraph, mousePosition, PINK);
-                status_isUnicursal = isUnicursal(pGraph);
+                status_isTree = isTree(pGraph);
                 status_isEulerian = isEulerian(pGraph);
+                status_isUnicursal = isUnicursal(pGraph);
             }
 
             if (hoverComplete) {
                 complete_graph(pGraph);
-                status_isTree = isTree(pGraph); 
+                status_isTree = isTree(pGraph);
+                status_isEulerian = isEulerian(pGraph);
+                status_isUnicursal = isUnicursal(pGraph);
             }
 
             if (hoverDFS && pGraph->num_vertex > 0) {
@@ -110,11 +113,14 @@ int main(void)
                         add_edge(pGraph->array[selected_vertex], clickedVertex, 10);
                         add_edge(pGraph->array[clickedVertex], selected_vertex, 10);
                         status_isTree = isTree(pGraph);
+                        status_isEulerian = isEulerian(pGraph);
+                        status_isUnicursal = isUnicursal(pGraph);
                     }
 
                     selected_vertex = -1;
                 }
             }
+
         }
 
         if (isDfsRunning) {
@@ -124,22 +130,7 @@ int main(void)
                 dfsTimer = 0.0f;
 
                 if (!isStackEmpty(pStack)) {
-                    int current = pop(pStack);
-
-                    if (visited_dfs[current] == 0) {
-                        visited_dfs[current] = 1;
-                        pGraph->array[current]->color = DARKBLUE; 
-                        printf("Visitando: %d\n", current);
-
-                        Edge_t* neighbor = pGraph->array[current]->head;
-                        while (neighbor != NULL) {
-                            if (visited_dfs[neighbor->index_dest] == 0) {
-                                push(pStack, neighbor->index_dest);
-                                pGraph->array[neighbor->index_dest]->color = SKYBLUE;
-                            }
-                            neighbor = neighbor->next;
-                        }
-                    }
+                    dfs(pGraph, pStack, visited_dfs);
                 }
                 else {
 
@@ -159,22 +150,7 @@ int main(void)
                 bfsTimer = 0.0f;
 
                 if (!isEmpty(pQueueBfs)) {
-                    int current = dequeue(pQueueBfs);
-
-                    pGraph->array[current]->color = DARKBLUE;
-                    printf("BFS Visitando: %d\n", current);
-
-                    Edge_t* neighbor = pGraph->array[current]->head;
-                    while (neighbor != NULL) {
-                        int dest = neighbor->index_dest;
-                        if (visited_bfs[dest] == 0) {
-                            visited_bfs[dest] = 1; 
-                            enqueue(pQueueBfs, dest);
-
-                            pGraph->array[dest]->color = SKYBLUE;
-                        }
-                        neighbor = neighbor->next;
-                    }
+                    bfs_step(pGraph, pQueueBfs, visited_bfs);
                 }
                 else {
                     isBfsRunning = false;
@@ -246,7 +222,6 @@ int main(void)
             int panelWidth = 250;
             int panelX = GetScreenWidth() - panelWidth - 10;
             int panelY = 10;
-
 
             DrawRectangle(panelX, panelY, panelWidth, 850, Fade(BLACK, 0.8f));
             DrawRectangleLines(panelX, panelY, panelWidth, 850, GRAY);

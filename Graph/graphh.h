@@ -4,6 +4,7 @@
 #include <string.h>
 #include "raylib.h"
 #include "queue.h"
+#include "stack.h"
 
 #pragma once
 
@@ -36,13 +37,13 @@ bool add_edge(Vertex_t* pArray, int dest, int weight);
 
 void print_ordered_pairs(Graph_t* pGraph);
 
-void start_dfs(Graph_t* pGraph, int vertex);
+void dfs(Graph_t* pGraph, Stack_t* pStack, int* visited_dfs);
 
-void dfs(Graph_t* pGraph, int vertex, int* visited);
+void bfs(Graph_t* pGraph, Queue_t* pQueueBfs, int* visited_bfs, int start);
 
-void start_bfs(Graph_t* pGraph, Queue_t* pQueue, int start);
+void bfs_step(Graph_t* pGraph, Queue_t* pQueueBfs, int* visited_bfs);
 
-void bfs(Graph_t* pGraph, Queue_t* pQueue, int* visited, int start);
+void start_bfs(Graph_t* pGraph, int start);
 
 int get_degree(Vertex_t* pVertex);
 

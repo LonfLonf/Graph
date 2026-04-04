@@ -1,5 +1,4 @@
 #include "graphh.h"
-#include "queue.h"
 
 Graph_t* create_graph(int initial_capacity)
 {
@@ -98,33 +97,24 @@ void print_ordered_pairs(Graph_t* pGraph)
 	}
 }
 
-void dfs(Graph_t* pGraph, int vertex, int* visited)
+void dfs(Graph_t* pGraph, Stack_t* pStack, int* visited_dfs)
 {
-	visited[vertex] = 1;
+	int current = pop(pStack);
 
-	Vertex_t* pVertex = (Vertex_t*)pGraph->array[vertex];
-	Edge_t* neighbor = pVertex->head;
+	if (visited_dfs[current] == 0) {
+		visited_dfs[current] = 1;
+		pGraph->array[current]->color = DARKBLUE;
+		printf("Visitando: %d\n", current);
 
-	printf("Visitado: %s\n", pVertex->label);
-
-	while (neighbor != NULL)
-	{
-		if (visited[neighbor->index_dest] == 0)
-		{
-			dfs(pGraph, neighbor->index_dest, visited);
+		Edge_t* neighbor = pGraph->array[current]->head;
+		while (neighbor != NULL) {
+			if (visited_dfs[neighbor->index_dest] == 0) {
+				push(pStack, neighbor->index_dest);
+				pGraph->array[neighbor->index_dest]->color = SKYBLUE;
+			}
+			neighbor = neighbor->next;
 		}
-
-		neighbor = neighbor->next;
 	}
-}
-
-void start_dfs(Graph_t* pGraph, int vertex)
-{
-	int* pArr = (int*)calloc(pGraph->num_vertex, sizeof(int));
-
-	dfs(pGraph, vertex, pArr);
-
-	free(pArr);
 }
 
 // BFS -> Breadth-First Search
@@ -152,6 +142,27 @@ void bfs(Graph_t* pGraph, Queue_t *pQueue, int* visited, int start)
 
 			neighbor = neighbor->next;
 		}
+	}
+}
+
+void bfs_step(Graph_t* pGraph, Queue_t* pQueueBfs, int* visited_bfs)
+{
+	int current = dequeue(pQueueBfs);
+
+	if (current == -1) return;
+
+	pGraph->array[current]->color = DARKBLUE;
+	printf("BFS Visitando: %d\n", current);
+
+	Edge_t* neighbor = pGraph->array[current]->head;
+	while (neighbor != NULL) {
+		int dest = neighbor->index_dest;
+		if (visited_bfs[dest] == 0) {
+			visited_bfs[dest] = 1;
+			enqueue(pQueueBfs, dest);
+			pGraph->array[dest]->color = SKYBLUE;
+		}
+		neighbor = neighbor->next;
 	}
 }
 
