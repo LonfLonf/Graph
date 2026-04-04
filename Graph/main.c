@@ -5,6 +5,18 @@
 
 int main(void)
 {
+    bool bobo = false;
+    Graph_t* pGraph = NULL;
+
+    if (!bobo)
+    {
+        load_graph_debug("test.graph", &pGraph);
+    }
+    else
+    {
+        pGraph = create_graph(4);
+    }
+
     int screenWidth = 1780;
     int screenHeight = 1000;
 
@@ -12,7 +24,6 @@ int main(void)
 
     bool isDragging = false;
 
-    Graph_t* pGraph = create_graph(4);
     int selected_vertex = -1;
     bool status_isTree = false;
     bool status_isUnicursal = false;
@@ -39,6 +50,7 @@ int main(void)
         Rectangle btnDFS = { 20, 280, 280, 30 };
         Rectangle btnBFS = { 20, 320, 280, 30 };
         Rectangle btnClear = { 20, 360, 280, 30 };
+        Rectangle btnSave = { 20, 400, 280, 30 };
 
         Vector2 mousePosition = GetMousePosition();
 
@@ -46,8 +58,9 @@ int main(void)
         bool hoverDFS = CheckCollisionPointRec(mousePosition, btnDFS);
         bool hoverBFS = CheckCollisionPointRec(mousePosition, btnBFS);
         bool hoverClear = CheckCollisionPointRec(mousePosition, btnClear);
+        bool hoverSave = CheckCollisionPointRec(mousePosition, btnSave);
 
-        bool mouseOnButtons = hoverComplete || hoverDFS || hoverBFS || hoverClear;
+        bool mouseOnButtons = hoverComplete || hoverDFS || hoverBFS || hoverClear || hoverSave;
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
@@ -92,6 +105,11 @@ int main(void)
 
             if (hoverClear) {
                 clean_graph(pGraph);
+            }
+
+            if (hoverSave) {
+                int edges = count_edges(pGraph);
+                save_graph(pGraph, edges);
             }
         }
 
@@ -257,8 +275,8 @@ int main(void)
                 }
             }
 
-            DrawRectangle(10, 230, 300, 170, Fade(BLACK, 0.8f));
-            DrawRectangleLines(10, 230, 300, 170, GRAY);
+            DrawRectangle(10, 230, 300, 210, Fade(BLACK, 0.8f));
+            DrawRectangleLines(10, 230, 300, 210, GRAY);
 
             DrawRectangleRec(btnComplete, hoverComplete ? LIGHTGRAY : DARKGRAY);
             DrawRectangleLinesEx(btnComplete, 1, BLACK);
@@ -275,6 +293,10 @@ int main(void)
             DrawRectangleRec(btnClear, hoverClear ? LIGHTGRAY : MAROON);
             DrawRectangleLinesEx(btnClear, 1, BLACK);
             DrawText("LIMPAR TELA", btnClear.x + 75, btnClear.y + 5, 20, hoverClear ? BLACK : WHITE);
+
+            DrawRectangleRec(btnSave, hoverSave ? LIGHTGRAY : DARKGREEN);
+            DrawRectangleLinesEx(btnSave, 1, BLACK);
+            DrawText("SALVAR GRAFO", btnSave.x + 60, btnSave.y + 5, 20, hoverSave ? BLACK : WHITE);
 
         EndDrawing();
     }

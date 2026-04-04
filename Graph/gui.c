@@ -1,4 +1,7 @@
+#include <stdio.h>
+#include <string.h>
 #include "gui.h"
+
 
 bool check_collision(Graph_t* pGraph, Vector2 mousePosition)
 {
@@ -57,4 +60,99 @@ void clean_graph(Graph_t* pGraph)
     {
         pGraph->array[i]->color = PINK;
     }
+}
+
+void save_graph(Graph_t* pGraph, int edges)
+{
+    FILE* pFile = fopen("test.graph", "wb");
+
+    if (pFile == NULL)
+    {
+        printf("Error to create the file");
+        return;
+    }
+
+    int num_vertex = pGraph->num_vertex;
+
+    Header_t header = { "GRAPH", num_vertex, edges };
+
+    fwrite(&header, sizeof(header), 1, pFile);
+    
+    for (int i = 0; i < pGraph->num_vertex; i++)
+    {
+        Vertex_t* pVertex = pGraph->array[i];
+
+        VertexDisk_t VertexDisk;
+        strncpy_s(VertexDisk.label, sizeof(VertexDisk.label), pVertex->label, _TRUNCATE);
+        VertexDisk.label[sizeof(VertexDisk.label) - 1] = '\0';
+        
+        VertexDisk.x = pVertex->position.x;
+        VertexDisk.y = pVertex->position.y;
+        VertexDisk.radius = pVertex->radius;
+        VertexDisk.a = pVertex->color.a;
+        VertexDisk.b = pVertex->color.b;
+        VertexDisk.g = pVertex->color.g;
+        VertexDisk.r = pVertex->color.r;
+
+        fwrite(&VertexDisk, sizeof(VertexDisk), 1, pFile);
+    }
+
+    for (int i = 0; i < pGraph->num_vertex; i++)
+    {
+        Vertex_t* pVertex = pGraph->array[i];
+        Edge_t* neighbour = pVertex->head;
+
+        while (neighbour != NULL)
+        {
+            EdgeDisk_t EdgeDisk;
+
+            EdgeDisk.index_dest = neighbour->index_dest;
+            EdgeDisk.vertex = i;
+            EdgeDisk.thick = neighbour->thick;
+            EdgeDisk.weight = neighbour->weight;
+
+            fwrite(&EdgeDisk, sizeof(EdgeDisk), 1, pFile);
+            
+            neighbour = neighbour->next;
+        }
+    }
+
+    fclose(pFile);
+}
+
+void load_graph_debug(const char* filename, Graph_t **pGraph)
+{
+    FILE* pFile = fopen(filename, "rb");
+
+    if (pFile == NULL)
+    {
+        printf("Erro ao abrir o arquivo '%s'!\n", filename);
+        return;
+    }
+
+    Header_t graph_disk;
+    fread(&graph_disk, sizeof(Header_t), 1, pFile);
+    
+    *pGraph = create_graph(graph_disk.qtd_vertex);
+
+    for (int i = 0; i < graph_disk.qtd_vertex; i++)
+    {
+        VertexDisk_t v;
+
+        fread(&v, sizeof(VertexDisk_t), 1, pFile);
+
+        Vector2 position = { v.x, v.y };
+        Color color = { v.r, v.g, v.b, v.a };
+
+        add_vertex(*pGraph, position, color);
+    }
+
+    EdgeDisk_t e;
+
+    while (fread(&e, sizeof(EdgeDisk_t), 1, pFile) == 1)
+    {
+        add_edge((*pGraph)->array[e.vertex], e.index_dest, e.weight);
+    }
+
+    fclose(pFile);
 }

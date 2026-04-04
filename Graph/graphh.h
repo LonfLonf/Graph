@@ -29,6 +29,34 @@ typedef struct Graph {
 	Vertex_t** array; 
 } Graph_t;
 
+/// <summary>
+/// 
+/// </summary>
+
+typedef struct EdgeDisk {
+	int vertex;
+	int index_dest;
+	int weight;
+	float thick;
+} EdgeDisk_t;
+
+typedef struct VertexDisk {
+	char label[50];
+	unsigned int color;
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+	unsigned char a;
+	float radius;
+	float x;
+	float y;  
+} VertexDisk_t;
+
+typedef struct GraphDisk {
+	int num_vertex;
+	int capacity;
+} GraphDisk_t;
+
 Graph_t* create_graph(int initial_capacity);
 
 int add_vertex(Graph_t* pGraph, Vector2 position, Color color);
