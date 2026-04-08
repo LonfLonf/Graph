@@ -17,8 +17,8 @@ int main(int argc, char* argv[])
         pGraph = create_graph(4);
     }
 
-    int screenWidth = 1780;
-    int screenHeight = 1000;
+    int screenWidth = 1600;
+    int screenHeight = 900;
 
     InitWindow(screenWidth, screenHeight, "Editor de Grafos");
 
