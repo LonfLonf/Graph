@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
     SetWindowIcon(logo);
 
     bool isDragging = false;
+    int draggingVertex = -1;
 
     int selected_vertex = -1;
     bool status_isTree = false;
@@ -52,8 +53,12 @@ int main(int argc, char* argv[])
         Rectangle btnComplete = { 20, 240, 280, 30 };
         Rectangle btnDFS = { 20, 280, 280, 30 };
         Rectangle btnBFS = { 20, 320, 280, 30 };
-        Rectangle btnClear = { 20, 360, 280, 30 };
-        Rectangle btnSave = { 20, 400, 280, 30 };
+        Rectangle btnAGM = { 20, 360, 280, 30 };
+        Rectangle btnDijkstra = { 20, 400, 280, 30 };
+        Rectangle btnCrom = { 20, 440, 280, 30 }; 
+
+        Rectangle btnClear = { 20, 480, 280, 30 };
+        Rectangle btnSave = { 20, 520, 280, 30 };
 
         Vector2 mousePosition = GetMousePosition();
 
@@ -63,12 +68,21 @@ int main(int argc, char* argv[])
         bool hoverClear = CheckCollisionPointRec(mousePosition, btnClear);
         bool hoverSave = CheckCollisionPointRec(mousePosition, btnSave);
 
-        bool mouseOnButtons = hoverComplete || hoverDFS || hoverBFS || hoverClear || hoverSave;
+        bool hoverAGM = CheckCollisionPointRec(mousePosition, btnAGM);
+        bool hoverDijkstra = CheckCollisionPointRec(mousePosition, btnDijkstra);
+        bool hoverCrom = CheckCollisionPointRec(mousePosition, btnCrom);
+
+        bool mouseOnButtons = hoverComplete || hoverDFS || hoverBFS || hoverClear || hoverSave || hoverAGM 
+            || hoverDijkstra || hoverCrom;
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
+            Vector2 mousePosition = GetMousePosition();
+            draggingVertex = get_vertex_by_position(pGraph, mousePosition);
 
-            if (!check_collision(pGraph, mousePosition) && !mouseOnButtons)
+            if (draggingVertex != -1) {
+                isDragging = true;
+            } else if (!check_collision(pGraph, mousePosition) && !mouseOnButtons)
             {
                 add_vertex(pGraph, mousePosition, PINK);
                 status_isTree = isTree(pGraph);
@@ -116,33 +130,125 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+            if (isDragging && draggingVertex != -1) {
+                Vector2 newMousePosition = GetMousePosition();
+                Vertex_t* pVertex = (Vertex_t*)pGraph->array[draggingVertex];
+                pVertex->position = newMousePosition;
+            }
+        }
+
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+            isDragging = false;
+            draggingVertex = -1;
+        }
+
+        float mouseWheel = GetMouseWheelMove();
+        if (mouseWheel != 0) {
+            Vector2 mousePosition = GetMousePosition();
+            for (int i = 0; i < pGraph->num_vertex; i++) {
+                Vertex_t* pVertex = (Vertex_t*)pGraph->array[i];
+                Edge_t* pEdge_head = pVertex->head;
+
+                while (pEdge_head != NULL) {
+                    Vertex_t* pDestino = (Vertex_t*)pGraph->array[pEdge_head->index_dest];
+
+                    Vector2 midPoint;
+                    midPoint.x = (pVertex->position.x + pDestino->position.x) / 2.0f;
+                    midPoint.y = (pVertex->position.y + pDestino->position.y) / 2.0f;
+
+                    if (CheckCollisionPointCircle(mousePosition, midPoint, 20.0f)) {
+                        pEdge_head->weight += (int)mouseWheel;
+                        if (pEdge_head->weight < 0) pEdge_head->weight = 0;
+                        if (pEdge_head->weight > 99) pEdge_head->weight = 99;
+
+                        Edge_t* pEdge_back = pDestino->head;
+                        while (pEdge_back != NULL) {
+                            if (pEdge_back->index_dest == i) {
+                                pEdge_back->weight = pEdge_head->weight;
+                                break;
+                            }
+                            pEdge_back = pEdge_back->next;
+                        }
+                    }
+
+                    pEdge_head = pEdge_head->next;
+                }
+            }
+        }
+
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
         {
             Vector2 mousePosition = GetMousePosition();
-            int clickedVertex = get_vertex_by_position(pGraph, mousePosition);
+            bool edgeClicked = false;
 
-            if (clickedVertex != -1)
-            {
-                if (selected_vertex == -1)
-                {
-                    selected_vertex = clickedVertex;
-                }
-                else
-                {
-                    if (selected_vertex != clickedVertex)
-                    {
-                        int weight = create_random_weights();
-                        add_edge(pGraph->array[selected_vertex], clickedVertex, weight);
-                        add_edge(pGraph->array[clickedVertex], selected_vertex, weight);
+            // Check if user clicked on an edge to remove it
+            for (int i = 0; i < pGraph->num_vertex; i++) {
+                Vertex_t* pVertex = (Vertex_t*)pGraph->array[i];
+                Edge_t* pEdge_head = pVertex->head;
+
+                while (pEdge_head != NULL) {
+                    Vertex_t* pDestino = (Vertex_t*)pGraph->array[pEdge_head->index_dest];
+                    int dest_index = pEdge_head->index_dest;
+
+                    Vector2 midPoint;
+                    midPoint.x = (pVertex->position.x + pDestino->position.x) / 2.0f;
+                    midPoint.y = (pVertex->position.y + pDestino->position.y) / 2.0f;
+
+                    if (CheckCollisionPointCircle(mousePosition, midPoint, 20.0f)) {
+                        remove_edge(pVertex, dest_index);
+                        remove_edge(pDestino, i);
+                        edgeClicked = true;
+
                         status_isTree = isTree(pGraph);
                         status_isEulerian = isEulerian(pGraph);
                         status_isUnicursal = isUnicursal(pGraph);
+                        break;
                     }
 
-                    selected_vertex = -1;
+                    pEdge_head = pEdge_head->next;
                 }
+                if (edgeClicked) break;
             }
 
+            if (!edgeClicked) {
+                int clickedVertex = get_vertex_by_position(pGraph, mousePosition);
+
+                // Check if user Shift+Clicked on a vertex to delete it
+                if (clickedVertex != -1 && IsKeyDown(KEY_LEFT_SHIFT)) {
+                    remove_vertex(pGraph, clickedVertex);
+                    if (selected_vertex == clickedVertex) selected_vertex = -1;
+                    if (draggingVertex == clickedVertex) {
+                        draggingVertex = -1;
+                        isDragging = false;
+                    }
+
+                    status_isTree = isTree(pGraph);
+                    status_isEulerian = isEulerian(pGraph);
+                    status_isUnicursal = isUnicursal(pGraph);
+                } 
+                else if (clickedVertex != -1)
+                {
+                    if (selected_vertex == -1)
+                    {
+                        selected_vertex = clickedVertex;
+                    }
+                    else
+                    {
+                        if (selected_vertex != clickedVertex)
+                        {
+                            int weight = create_random_weights();
+                            add_edge(pGraph->array[selected_vertex], clickedVertex, weight);
+                            add_edge(pGraph->array[clickedVertex], selected_vertex, weight);
+                            status_isTree = isTree(pGraph);
+                            status_isEulerian = isEulerian(pGraph);
+                            status_isUnicursal = isUnicursal(pGraph);
+                        }
+
+                        selected_vertex = -1;
+                    }
+                }
+            }
         }
 
         if (isDfsRunning) {
@@ -279,28 +385,48 @@ int main(int argc, char* argv[])
                 }
             }
 
-            DrawRectangle(10, 230, 300, 210, Fade(BLACK, 0.8f));
-            DrawRectangleLines(10, 230, 300, 210, GRAY);
+            DrawRectangle(10, 230, 300, 350, Fade(BLACK, 0.8f));
+            DrawRectangleLines(10, 230, 300, 350, GRAY);
 
             DrawRectangleRec(btnComplete, hoverComplete ? LIGHTGRAY : DARKGRAY);
             DrawRectangleLinesEx(btnComplete, 1, BLACK);
-            DrawText("COMPLETAR GRAFO", btnComplete.x + 45, btnComplete.y + 5, 20, hoverComplete ? BLACK : WHITE);
+            int textCompleteWidth = MeasureText("COMPLETAR GRAFO", 20);
+            DrawText("COMPLETAR GRAFO", btnComplete.x + (btnComplete.width - textCompleteWidth) / 2, btnComplete.y + 5, 20, hoverComplete ? BLACK : WHITE);
 
             DrawRectangleRec(btnDFS, hoverDFS ? LIGHTGRAY : DARKGRAY);
             DrawRectangleLinesEx(btnDFS, 1, BLACK);
-            DrawText("BUSCA DFS", btnDFS.x + 85, btnDFS.y + 5, 20, hoverDFS ? BLACK : WHITE);
+            int textDFSWidth = MeasureText("BUSCA DFS", 20);
+            DrawText("BUSCA DFS", btnDFS.x + (btnDFS.width - textDFSWidth) / 2, btnDFS.y + 5, 20, hoverDFS ? BLACK : WHITE);
 
             DrawRectangleRec(btnBFS, hoverBFS ? LIGHTGRAY : DARKGRAY);
             DrawRectangleLinesEx(btnBFS, 1, BLACK);
-            DrawText("BUSCA BFS", btnBFS.x + 85, btnBFS.y + 5, 20, hoverBFS ? BLACK : WHITE);
+            int textBFSWidth = MeasureText("BUSCA BFS", 20);
+            DrawText("BUSCA BFS", btnBFS.x + (btnBFS.width - textBFSWidth) / 2, btnBFS.y + 5, 20, hoverBFS ? BLACK : WHITE);
+
+            DrawRectangleRec(btnAGM, hoverAGM ? LIGHTGRAY : DARKGRAY);
+            DrawRectangleLinesEx(btnAGM, 1, BLACK);
+            int textAGMWidth = MeasureText("AGM", 20);
+            DrawText("AGM", btnAGM.x + (btnAGM.width - textAGMWidth) / 2, btnAGM.y + 5, 20, hoverAGM ? BLACK : WHITE);
+
+            DrawRectangleRec(btnDijkstra, hoverDijkstra ? LIGHTGRAY : DARKGRAY);
+            DrawRectangleLinesEx(btnDijkstra, 1, BLACK);
+            int textDijkstraWidth = MeasureText("DIJKSTRA", 20);
+            DrawText("DIJKSTRA", btnDijkstra.x + (btnDijkstra.width - textDijkstraWidth) / 2, btnDijkstra.y + 5, 20, hoverDijkstra ? BLACK : WHITE);
+
+            DrawRectangleRec(btnCrom, hoverCrom ? LIGHTGRAY : DARKGRAY);
+            DrawRectangleLinesEx(btnCrom, 1, BLACK);
+            int textCromWidth = MeasureText("NÚMERO CROMATICO", 20);
+            DrawText("NÚMERO CROMATICO", btnCrom.x + (btnCrom.width - textCromWidth) / 2, btnCrom.y + 5, 20, hoverCrom ? BLACK : WHITE);
 
             DrawRectangleRec(btnClear, hoverClear ? LIGHTGRAY : MAROON);
             DrawRectangleLinesEx(btnClear, 1, BLACK);
-            DrawText("LIMPAR TELA", btnClear.x + 75, btnClear.y + 5, 20, hoverClear ? BLACK : WHITE);
+            int textClearWidth = MeasureText("LIMPAR TELA", 20);
+            DrawText("LIMPAR TELA", btnClear.x + (btnClear.width - textClearWidth) / 2, btnClear.y + 5, 20, hoverClear ? BLACK : WHITE);
 
             DrawRectangleRec(btnSave, hoverSave ? LIGHTGRAY : DARKGREEN);
             DrawRectangleLinesEx(btnSave, 1, BLACK);
-            DrawText("SALVAR GRAFO", btnSave.x + 60, btnSave.y + 5, 20, hoverSave ? BLACK : WHITE);
+            int textSaveWidth = MeasureText("SALVAR GRAFO", 20);
+            DrawText("SALVAR GRAFO", btnSave.x + (btnSave.width - textSaveWidth) / 2, btnSave.y + 5, 20, hoverSave ? BLACK : WHITE);
 
         EndDrawing();
     }

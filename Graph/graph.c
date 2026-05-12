@@ -336,3 +336,68 @@ int create_random_weights()
 {
 	return (rand() % 15) + 1;
 }
+
+bool remove_edge(Vertex_t* pVertex, int dest)
+{
+	if (pVertex == NULL || pVertex->head == NULL) return false;
+
+	Edge_t* current = pVertex->head;
+	Edge_t* previous = NULL;
+
+	while (current != NULL)
+	{
+		if (current->index_dest == dest)
+		{
+			if (previous == NULL) {
+				pVertex->head = current->next;
+			}
+			else {
+				previous->next = current->next;
+			}
+			free(current);
+			return true;
+		}
+		previous = current;
+		current = current->next;
+	}
+	return false;
+}
+
+void remove_vertex(Graph_t* pGraph, int index)
+{
+	if (pGraph == NULL || index < 0 || index >= pGraph->num_vertex) return;
+
+	Vertex_t* pVertexToRemove = pGraph->array[index];
+
+	for (int i = 0; i < pGraph->num_vertex; i++)
+	{
+		Vertex_t* pVertex = pGraph->array[i];
+
+		remove_edge(pVertex, index);
+
+		Edge_t* current = pVertex->head;
+		while (current != NULL)
+		{
+			if (current->index_dest > index) {
+				current->index_dest--;
+			}
+			current = current->next;
+		}
+	}
+
+	Edge_t* current = pVertexToRemove->head;
+	while (current != NULL)
+	{
+		Edge_t* next = current->next;
+		free(current);
+		current = next;
+	}
+	free(pVertexToRemove);
+
+	for (int i = index; i < pGraph->num_vertex - 1; i++)
+	{
+		pGraph->array[i] = pGraph->array[i + 1];
+	}
+
+	pGraph->num_vertex--;
+}
