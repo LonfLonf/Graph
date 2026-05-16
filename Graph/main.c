@@ -45,6 +45,24 @@ int main(int argc, char* argv[])
     int* visited_bfs = NULL;
     Queue_t* pQueueBfs = NULL;
 
+    bool isKruskalRunning = false;
+    float kruskalTimer = 0.0f;
+    float kruskalDelay = 0.9f;
+    KruskalState_t* pKruskalState = NULL;
+    bool kruskalFinished = false;
+
+    bool isDijkstraRunning = false;
+    float dijkstraTimer = 0.0f;
+    float dijkstraDelay = 0.5f;
+    DijkstraState_t* pDijkstraState = NULL;
+    bool dijkstraFinished = false;
+
+    bool isChromaticRunning = false;
+    float chromaticTimer = 0.0f;
+    float chromaticDelay = 0.5f;
+    ChromaticState_t* pChromaticState = NULL;
+    bool chromaticFinished = false;
+
     SetTargetFPS(60);
 
     while (!WindowShouldClose())
@@ -120,8 +138,53 @@ int main(int argc, char* argv[])
                 }
             }
 
+            if (hoverAGM && pGraph->num_vertex > 0) {
+                if (!isKruskalRunning) {
+                    isKruskalRunning = true;
+                    kruskalTimer = 0.0f;
+                    pKruskalState = Kruskal_init(pGraph);
+                }
+            }
+
+            if (hoverDijkstra && pGraph->num_vertex > 0) {
+                if (!isDijkstraRunning) {
+                    isDijkstraRunning = true;
+                    dijkstraTimer = 0.0f;
+                    pDijkstraState = Dijkstra_init(pGraph, 0);
+                }
+            }
+
+            if (hoverCrom && pGraph->num_vertex > 0) {
+                if (!isChromaticRunning) {
+                    isChromaticRunning = true;
+                    chromaticTimer = 0.0f;
+                    pChromaticState = Chromatic_init(pGraph);
+                }
+            }
+
             if (hoverClear) {
                 clean_graph(pGraph);
+                isKruskalRunning = false;
+                kruskalFinished = false;
+                isDijkstraRunning = false;
+                dijkstraFinished = false;
+                isChromaticRunning = false;
+                chromaticFinished = false;
+                if (pKruskalState) {
+                    Kruskal_free(pKruskalState);
+                    pKruskalState = NULL;
+                }
+                if (pDijkstraState) {
+                    Dijkstra_free(pDijkstraState);
+                    pDijkstraState = NULL;
+                }
+                if (pChromaticState) {
+                    Chromatic_free(pChromaticState);
+                    pChromaticState = NULL;
+                }
+                status_isTree = isTree(pGraph);
+                status_isEulerian = isEulerian(pGraph);
+                status_isUnicursal = isUnicursal(pGraph);
             }
 
             if (hoverSave) {
@@ -182,7 +245,6 @@ int main(int argc, char* argv[])
             Vector2 mousePosition = GetMousePosition();
             bool edgeClicked = false;
 
-            // Check if user clicked on an edge to remove it
             for (int i = 0; i < pGraph->num_vertex; i++) {
                 Vertex_t* pVertex = (Vertex_t*)pGraph->array[i];
                 Edge_t* pEdge_head = pVertex->head;
@@ -214,7 +276,7 @@ int main(int argc, char* argv[])
             if (!edgeClicked) {
                 int clickedVertex = get_vertex_by_position(pGraph, mousePosition);
 
-                // Check if user Shift+Clicked on a vertex to delete it
+
                 if (clickedVertex != -1 && IsKeyDown(KEY_LEFT_SHIFT)) {
                     remove_vertex(pGraph, clickedVertex);
                     if (selected_vertex == clickedVertex) selected_vertex = -1;
@@ -290,6 +352,54 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (isKruskalRunning) {
+            kruskalTimer += GetFrameTime();
+
+            if (kruskalTimer >= kruskalDelay) {
+                kruskalTimer = 0.0f;
+
+                if (pKruskalState && !pKruskalState->finished) {
+                    Kruskal_step(pGraph, pKruskalState);
+                }
+                else if (pKruskalState && pKruskalState->finished) {
+                    isKruskalRunning = false;
+                    kruskalFinished = true;
+                }
+            }
+        }
+
+        if (isDijkstraRunning) {
+            dijkstraTimer += GetFrameTime();
+
+            if (dijkstraTimer >= dijkstraDelay) {
+                dijkstraTimer = 0.0f;
+
+                if (pDijkstraState && !pDijkstraState->finished) {
+                    Dijkstra_step(pGraph, pDijkstraState);
+                }
+                else if (pDijkstraState && pDijkstraState->finished) {
+                    isDijkstraRunning = false;
+                    dijkstraFinished = true;
+                }
+            }
+        }
+
+        if (isChromaticRunning) {
+            chromaticTimer += GetFrameTime();
+
+            if (chromaticTimer >= chromaticDelay) {
+                chromaticTimer = 0.0f;
+
+                if (pChromaticState && !pChromaticState->finished) {
+                    Chromatic_step(pGraph, pChromaticState);
+                }
+                else if (pChromaticState && pChromaticState->finished) {
+                    isChromaticRunning = false;
+                    chromaticFinished = true;
+                }
+            }
+        }
+
         BeginDrawing();
             ClearBackground(RAYWHITE);
             
@@ -306,12 +416,30 @@ int main(int argc, char* argv[])
 
                     Vertex_t* pDestino = (Vertex_t*)pGraph->array[index_destino];
 
-                    DrawLineEx(pVertex->position, pDestino->position, 3.0f, DARKGRAY);
+                    if (kruskalFinished) {
+                        if (pEdge_head->in_mst) {
+                            DrawLineEx(pVertex->position, pDestino->position, 3.0f, RED);
 
-                    int midX = (pVertex->position.x + pDestino->position.x) / 2;
-                    int midY = (pVertex->position.y + pDestino->position.y) / 2;
+                            int midX = (pVertex->position.x + pDestino->position.x) / 2;
+                            int midY = (pVertex->position.y + pDestino->position.y) / 2;
+                            DrawText(TextFormat("%d", pEdge_head->weight), midX - 10, midY - 10, 20, WHITE);
+                        }
+                    } else if (dijkstraFinished) {
+                        if (pEdge_head->in_mst) {
+                            DrawLineEx(pVertex->position, pDestino->position, 3.0f, GREEN);
 
-                    DrawText(TextFormat("%d", pEdge_head->weight), midX - 10, midY - 10, 20, RED);
+                            int midX = (pVertex->position.x + pDestino->position.x) / 2;
+                            int midY = (pVertex->position.y + pDestino->position.y) / 2;
+                            DrawText(TextFormat("%d", pEdge_head->weight), midX - 10, midY - 10, 20, WHITE);
+                        }
+                    } else {
+                        Color edgeColor = pEdge_head->in_mst ? RED : DARKGRAY;
+                        DrawLineEx(pVertex->position, pDestino->position, 3.0f, edgeColor);
+
+                        int midX = (pVertex->position.x + pDestino->position.x) / 2;
+                        int midY = (pVertex->position.y + pDestino->position.y) / 2;
+                        DrawText(TextFormat("%d", pEdge_head->weight), midX - 10, midY - 10, 20, RED);
+                    }
 
                     pEdge_head = pEdge_head->next;
                 }

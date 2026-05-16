@@ -12,6 +12,7 @@ typedef struct Edge {
 	int index_dest;
 	int weight;
 	float thick;
+	bool in_mst;
 	struct Edge *next;
 } Edge_t;
 
@@ -57,6 +58,42 @@ typedef struct GraphDisk {
 	int capacity;
 } GraphDisk_t;
 
+typedef struct KruskalEdge {
+	int src;
+	int dest;
+	int weight;
+} KruskalEdge_t;
+
+typedef struct KruskalState {
+	KruskalEdge_t* edges;
+	int* parent;
+	int* rank;
+	int edge_count;
+	int current_edge;
+	int mst_weight;
+	bool finished;
+} KruskalState_t;
+
+typedef struct DijkstraState {
+	int* distance;
+	bool* visited;
+	int* parent;
+	int source;
+	int destination;
+	int current_vertex;
+	int vertices_processed;
+	int num_vertex;
+	bool finished;
+} DijkstraState_t;
+
+typedef struct ChromaticState {
+	int* color;
+	int num_colors;
+	int num_vertex;
+	int current_vertex;
+	bool finished;
+} ChromaticState_t;
+
 Graph_t* create_graph(int initial_capacity);
 
 int add_vertex(Graph_t* pGraph, Vector2 position, Color color);
@@ -93,3 +130,25 @@ void remove_vertex(Graph_t* pGraph, int index);
 bool edge_exists(Vertex_t* pVertex, int j);
 
 int create_random_weights();
+
+KruskalState_t* Kruskal_init(Graph_t* pGraph);
+
+void Kruskal_step(Graph_t* pGraph, KruskalState_t* pState);
+
+void Kruskal_free(KruskalState_t* pState);
+
+DijkstraState_t* Dijkstra_init(Graph_t* pGraph, int source);
+
+void Dijkstra_step(Graph_t* pGraph, DijkstraState_t* pState);
+
+void Dijkstra_free(DijkstraState_t* pState);
+
+void Dijkstra(Graph_t* pGraph);
+
+ChromaticState_t* Chromatic_init(Graph_t* pGraph);
+
+void Chromatic_step(Graph_t* pGraph, ChromaticState_t* pState);
+
+void Chromatic_free(ChromaticState_t* pState);
+
+void CromaticNumber(Graph_t* pGraph);

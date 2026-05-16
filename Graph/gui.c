@@ -59,6 +59,12 @@ void clean_graph(Graph_t* pGraph)
     for (int i = 0; i < pGraph->num_vertex; i++)
     {
         pGraph->array[i]->color = PINK;
+
+        Edge_t* pEdge = pGraph->array[i]->head;
+        while (pEdge != NULL) {
+            pEdge->in_mst = false;
+            pEdge = pEdge->next;
+        }
     }
 }
 

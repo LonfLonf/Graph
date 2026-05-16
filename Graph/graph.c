@@ -69,6 +69,7 @@ bool add_edge(Vertex_t* pArray, int dest, int weight)
 
 	pEdge->index_dest = dest;
 	pEdge->weight = weight;
+	pEdge->in_mst = false;
 	pEdge->next = pArray->head;
 
 	pArray->head = pEdge;
@@ -400,4 +401,411 @@ void remove_vertex(Graph_t* pGraph, int index)
 	}
 
 	pGraph->num_vertex--;
+}
+
+int sort_kruskal(const void *a, const void *b)
+{
+	KruskalEdge_t* edgeA = (KruskalEdge_t*)a;
+	KruskalEdge_t* edgeB = (KruskalEdge_t*)b;
+
+	return (edgeA->weight - edgeB->weight);
+}
+
+int find_parent(int parent[], int i) {
+	if (parent[i] == i)
+		return i;
+	return parent[i] = find_parent(parent, parent[i]);
+}
+
+void union_sets(int parent[], int rank[], int x, int y) {
+	int xroot = find_parent(parent, x);
+	int yroot = find_parent(parent, y);
+
+	if (rank[xroot] < rank[yroot])
+		parent[xroot] = yroot;
+	else if (rank[xroot] > rank[yroot])
+		parent[yroot] = xroot;
+	else {
+		parent[yroot] = xroot;
+		rank[xroot]++;
+	}
+}
+
+KruskalState_t* Kruskal_init(Graph_t* pGraph)
+{
+	if (pGraph->num_vertex <= 0) return NULL;
+
+	int max_edges = count_edges(pGraph) * 2; 
+	if (max_edges == 0) return NULL;
+
+	KruskalState_t* pState = malloc(sizeof(KruskalState_t));
+	if (pState == NULL) return NULL;
+
+	KruskalEdge_t* pArr = malloc(sizeof(KruskalEdge_t) * max_edges);
+	if (pArr == NULL) {
+		free(pState);
+		return NULL;
+	}
+
+	int edge_index = 0;
+
+	for (int i = 0; i < pGraph->num_vertex; i++)
+	{
+		Vertex_t *pVertex = (Vertex_t*)pGraph->array[i];
+		Edge_t* neigbour = pVertex->head;
+
+		while (neigbour != NULL)
+		{
+			if (i < neigbour->index_dest) {
+				pArr[edge_index].src = i;
+				pArr[edge_index].dest = neigbour->index_dest;
+				pArr[edge_index].weight = neigbour->weight;
+				edge_index++;
+			}
+			neigbour = neigbour->next;
+		}
+	}
+
+	qsort(pArr, edge_index, sizeof(KruskalEdge_t), sort_kruskal);
+
+	int* parent = malloc(sizeof(int) * pGraph->num_vertex);
+	int* rank = calloc(pGraph->num_vertex, sizeof(int));
+
+	if (parent == NULL || rank == NULL) {
+		free(parent);
+		free(rank);
+		free(pArr);
+		free(pState);
+		return NULL;
+	}
+
+	for (int i = 0; i < pGraph->num_vertex; i++) {
+		parent[i] = i;
+	}
+
+	pState->edges = pArr;
+	pState->parent = parent;
+	pState->rank = rank;
+	pState->edge_count = edge_index;
+	pState->current_edge = 0;
+	pState->mst_weight = 0;
+	pState->finished = false;
+
+	return pState;
+}
+
+void Kruskal_step(Graph_t* pGraph, KruskalState_t* pState)
+{
+	if (pState == NULL || pState->finished || pState->current_edge >= pState->edge_count) {
+		if (pState && !pState->finished) {
+			pState->finished = true;
+		}
+		return;
+	}
+
+	KruskalEdge_t* edge = &pState->edges[pState->current_edge];
+	int src = edge->src;
+	int dest = edge->dest;
+	int weight = edge->weight;
+
+	int x = find_parent(pState->parent, src);
+	int y = find_parent(pState->parent, dest);
+
+	if (x != y) {
+		pState->mst_weight += weight;
+		union_sets(pState->parent, pState->rank, x, y);
+
+		Vertex_t* pSrcVertex = (Vertex_t*)pGraph->array[src];
+		Edge_t* pEdge = pSrcVertex->head;
+		while (pEdge != NULL) {
+			if (pEdge->index_dest == dest) {
+				pEdge->in_mst = true;
+				break;
+			}
+			pEdge = pEdge->next;
+		}
+
+		Vertex_t* pDestVertex = (Vertex_t*)pGraph->array[dest];
+		pEdge = pDestVertex->head;
+		while (pEdge != NULL) {
+			if (pEdge->index_dest == src) {
+				pEdge->in_mst = true;
+				break;
+			}
+			pEdge = pEdge->next;
+		}
+	}
+
+	pState->current_edge++;
+}
+
+void Kruskal_free(KruskalState_t* pState)
+{
+	if (pState == NULL) return;
+	free(pState->edges);
+	free(pState->parent);
+	free(pState->rank);
+	free(pState);
+}
+
+DijkstraState_t* Dijkstra_init(Graph_t* pGraph, int source)
+{
+	if (pGraph->num_vertex <= 0 || source < 0 || source >= pGraph->num_vertex) {
+		return NULL;
+	}
+
+	DijkstraState_t* pState = malloc(sizeof(DijkstraState_t));
+	if (pState == NULL) return NULL;
+
+	pState->distance = malloc(sizeof(int) * pGraph->num_vertex);
+	pState->visited = malloc(sizeof(bool) * pGraph->num_vertex);
+	pState->parent = malloc(sizeof(int) * pGraph->num_vertex);
+
+	if (pState->distance == NULL || pState->visited == NULL || pState->parent == NULL) {
+		free(pState->distance);
+		free(pState->visited);
+		free(pState->parent);
+		free(pState);
+		return NULL;
+	}
+
+	for (int i = 0; i < pGraph->num_vertex; i++) {
+		pState->distance[i] = (i == source) ? 0 : INT_MAX;
+		pState->visited[i] = false;
+		pState->parent[i] = -1;
+	}
+
+	pState->source = source;
+	pState->destination = pGraph->num_vertex - 1; 
+	pState->current_vertex = source;
+	pState->vertices_processed = 0;
+	pState->num_vertex = pGraph->num_vertex;
+	pState->finished = false;
+
+	return pState;
+}
+
+void Dijkstra_step(Graph_t* pGraph, DijkstraState_t* pState)
+{
+	if (pState == NULL || pState->finished || pState->vertices_processed >= pState->num_vertex) {
+		if (pState && !pState->finished) {
+			pState->finished = true;
+
+			int current = pState->destination;
+
+			while (current != pState->source && pState->parent[current] != -1) {
+				int parent = pState->parent[current];
+
+				Vertex_t* pParentVertex = (Vertex_t*)pGraph->array[parent];
+				Edge_t* pEdge = pParentVertex->head;
+				while (pEdge != NULL) {
+					if (pEdge->index_dest == current) {
+						pEdge->in_mst = true;
+						break;
+					}
+					pEdge = pEdge->next;
+				}
+
+				current = parent;
+			}
+		}
+		return;
+	}
+
+	if (pState->visited[pState->destination]) {
+		pState->finished = true;
+
+		int current = pState->destination;
+
+		while (current != pState->source && pState->parent[current] != -1) {
+			int parent = pState->parent[current];
+
+			Vertex_t* pParentVertex = (Vertex_t*)pGraph->array[parent];
+			Edge_t* pEdge = pParentVertex->head;
+			while (pEdge != NULL) {
+				if (pEdge->index_dest == current) {
+					pEdge->in_mst = true;
+					break;
+				}
+				pEdge = pEdge->next;
+			}
+
+			current = parent;
+		}
+
+		return;
+	}
+
+	int minDist = INT_MAX;
+	int minVertex = -1;
+
+	for (int i = 0; i < pState->num_vertex; i++) {
+		if (!pState->visited[i] && pState->distance[i] < minDist) {
+			minDist = pState->distance[i];
+			minVertex = i;
+		}
+	}
+
+	if (minVertex == -1) {
+		pState->finished = true;
+		return;
+	}
+
+	pState->visited[minVertex] = true;
+	pState->vertices_processed++;
+
+	Vertex_t* pVertex = (Vertex_t*)pGraph->array[minVertex];
+	Edge_t* pEdge = pVertex->head;
+
+	while (pEdge != NULL) {
+		int neighbor = pEdge->index_dest;
+		int weight = pEdge->weight;
+
+		if (!pState->visited[neighbor]) {
+			int newDist = (pState->distance[minVertex] == INT_MAX) ? INT_MAX : pState->distance[minVertex] + weight;
+
+			if (newDist < pState->distance[neighbor]) {
+				pState->distance[neighbor] = newDist;
+				pState->parent[neighbor] = minVertex;
+
+			}
+		}
+
+		pEdge = pEdge->next;
+	}
+}
+
+void Dijkstra_free(DijkstraState_t* pState)
+{
+	if (pState == NULL) return;
+	free(pState->distance);
+	free(pState->visited);
+	free(pState->parent);
+	free(pState);
+}
+
+void Dijkstra(Graph_t* pGraph)
+{
+	if (pGraph->num_vertex <= 0) return;
+
+	DijkstraState_t* pState = Dijkstra_init(pGraph, 0);
+	if (pState == NULL) return;
+
+	while (!pState->finished) {
+		Dijkstra_step(pGraph, pState);
+	}
+
+	Dijkstra_free(pState);
+}
+
+Color get_chromatic_color(int color_index)
+{
+	switch(color_index) {
+		case 0: return RED;
+		case 1: return BLUE;
+		case 2: return GREEN;
+		case 3: return YELLOW;
+		case 4: return MAGENTA;
+		case 5: return (Color){0, 255, 255, 255}; 
+		case 6: return ORANGE;
+		case 7: return PURPLE;
+		case 8: return LIME;
+		case 9: return MAROON;
+		default: return WHITE;
+	}
+}
+
+ChromaticState_t* Chromatic_init(Graph_t* pGraph)
+{
+	if (pGraph->num_vertex <= 0) return NULL;
+
+	ChromaticState_t* pState = malloc(sizeof(ChromaticState_t));
+	if (pState == NULL) return NULL;
+
+	pState->color = malloc(sizeof(int) * pGraph->num_vertex);
+	if (pState->color == NULL) {
+		free(pState);
+		return NULL;
+	}
+
+	for (int i = 0; i < pGraph->num_vertex; i++) {
+		pState->color[i] = -1;
+	}
+
+	pState->num_vertex = pGraph->num_vertex;
+	pState->current_vertex = 0;
+	pState->num_colors = 0;
+	pState->finished = false;
+
+	return pState;
+}
+
+void Chromatic_step(Graph_t* pGraph, ChromaticState_t* pState)
+{
+	if (pState == NULL || pState->finished || pState->current_vertex >= pState->num_vertex) {
+		if (pState && !pState->finished) {
+			pState->finished = true;
+		}
+		return;
+	}
+
+	int vertex = pState->current_vertex;
+	
+	bool* available = malloc(sizeof(bool) * (pState->num_colors + 1));
+	for (int i = 0; i <= pState->num_colors; i++) {
+		available[i] = true;
+	}
+
+	Vertex_t* pVertex = (Vertex_t*)pGraph->array[vertex];
+	Edge_t* pEdge = pVertex->head;
+
+	while (pEdge != NULL) {
+		int neighbor = pEdge->index_dest;
+		if (pState->color[neighbor] != -1) {
+			available[pState->color[neighbor]] = false;
+		}
+		pEdge = pEdge->next;
+	}
+
+	int color = 0;
+	while (color <= pState->num_colors && !available[color]) {
+		color++;
+	}
+
+	pState->color[vertex] = color;
+
+	if (color >= pState->num_colors) {
+		pState->num_colors = color + 1;
+	}
+
+	printf("Vertice %d colorido com cor %d\n", vertex, color);
+
+	if (color < 10) {
+		pGraph->array[vertex]->color = get_chromatic_color(color);
+	}
+
+	pState->current_vertex++;
+	free(available);
+}
+
+void Chromatic_free(ChromaticState_t* pState)
+{
+	if (pState == NULL) return;
+	free(pState->color);
+	free(pState);
+}
+
+void CromaticNumber(Graph_t* pGraph)
+{
+
+	if (pGraph->num_vertex <= 0) return;
+
+	ChromaticState_t* pState = Chromatic_init(pGraph);
+	if (pState == NULL) return;
+
+	while (!pState->finished) {
+		Chromatic_step(pGraph, pState);
+	}
+
+	Chromatic_free(pState);
 }
