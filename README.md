@@ -1,17 +1,132 @@
 # 🚀 Graph Editor (Editor de Grafos Interativo em C)
 
-Este é um editor e visualizador interativo de grafos desenvolvido em C puro, utilizando a biblioteca gráfica **Raylib**. O projeto permite a criação visual de vértices e arestas, análise de propriedades matemáticas do grafo em tempo real e visualização animada de algoritmos de busca clássicos.
+Este é um editor e visualizador interativo de grafos desenvolvido em C puro, utilizando a biblioteca gráfica **Raylib**. O projeto permite a criação visual de vértices e arestas, análise de propriedades matemáticas do grafo em tempo real, manipulação interativa de dados, e visualização animada de algoritmos clássicos (DFS, BFS, Kruskal, Dijkstra e Número Cromático).
 
 ## ✨ Funcionalidades e Controles
 
-O editor possui uma interface gráfica customizada dividida em painéis e botões de interação.
+### 🖱️ Interações do Mouse
 
-* **Botão Esquerdo do Mouse (LMB):** * Clica em áreas vazias da grade para criar um novo vértice.
-  * Interage com os botões do menu (Completar Grafo, Busca DFS, Busca BFS, Limpar Tela, Salvar Grafo).
-* **Botão Direito do Mouse (RMB):**
-  * Usado para criar arestas. Clique em um vértice (ele será selecionado) e, em seguida, clique em outro vértice para traçar a aresta conectando-os.
-* **Painel de Análise (Esquerda):** Exibe as coordenadas do mouse, se o grafo é Euleriano, Unicursal ou uma Árvore, além de mostrar o número de pares ordenados (arestas).
-* **Painel de Adjacência (Direita):** Mostra em tempo real a Lista de Adjacência do grafo atual, detalhando as conexões de origem e destino.
+#### Botão Esquerdo (LMB)
+* **Clique em área vazia:** Cria um novo vértice na posição do cursor
+* **Clique + Arrasto em um vértice:** Move o vértice para a nova posição
+* **Clique em botões:** Ativa as funções do menu (ver seção de Botões)
+
+#### Botão Direito (RMB)
+* **Clique em uma aresta:** Remove a aresta (desenho da linha é deletado)
+* **Shift + Clique em um vértice:** Remove o vértice e reindexação automática dos vizinhos
+
+#### Mouse Wheel (Roda do Mouse)
+* **Scroll para cima/baixo perto de uma aresta:** Aumenta/diminui o peso da aresta (limites: 0-99)
+
+### 📊 Painéis de Informação
+
+#### Painel de Análise (Canto Superior Esquerdo)
+Exibe em tempo real:
+* Coordenadas do mouse (X, Y)
+* Se o grafo é **Árvore** ✓
+* Se o grafo é **Euleriano** ✓
+* Se o grafo é **Unicursal** ✓
+* Total de arestas e vértices
+
+#### Painel de Adjacência (Lado Direito)
+Mostra a **Lista de Adjacência completa**:
+* Vértice de origem
+* Destino(s) conectado(s)
+* Peso de cada aresta
+
+### 🎛️ Botões de Controle
+
+| Botão | Descrição | Atalho Visual |
+|-------|-----------|---------------|
+| **COMPLETAR GRAFO** | Torna o grafo completo (K_n) conectando todos os vértices | - |
+| **BUSCA DFS** | Executa Busca em Profundidade animada começando do vértice 0 | Vertices ficam azuis |
+| **BUSCA BFS** | Executa Busca em Largura animada começando do vértice 0 | Vertices ficam azuis |
+| **AGM** | Calcula a Árvore Geradora Mínima usando algoritmo de Kruskal | Arestas ficam **VERMELHAS** 🔴 |
+| **DIJKSTRA** | Encontra o caminho mais curto do vértice 0 até o último vértice | Arestas ficam **VERDES** 🟢 |
+| **NÚMERO CROMÁTICO** | Colore o grafo com o mínimo de cores necessárias | Vertices em cores variadas 🎨 |
+| **LIMPAR TELA** | Reseta tudo (cores, arestas AGM/Dijkstra, algoritmos) | - |
+| **SALVAR GRAFO** | Salva o grafo em arquivo binário `test.graph` | - |
+
+---
+
+## 🔧 Detalhes dos Algoritmos
+
+### 1️⃣ **AGM - Árvore Geradora Mínima (Kruskal)**
+
+**O que faz:**
+* Encontra o conjunto de arestas que conecta todos os vértices com o menor peso total
+* Usa algoritmo de Kruskal com Union-Find para detectar ciclos
+* Executa passo a passo com animação
+
+**Visualização:**
+* Durante a execução: Apenas as arestas selecionadas são mostradas em **VERMELHO**
+* Outras arestas desaparecem da tela
+* Console mostra: Cada aresta incluída e o peso total da AGM
+
+**Configuração:**
+* Delay: 0.5 segundos entre cada passo
+* Útil para problemas de conectividade mínima (redes, estradas, etc)
+
+**Exemplo prático:**
+- Crie 4 vértices em forma de quadrado
+- Conecte todos (8 arestas)
+- Clique em AGM
+- Apenas 3 arestas serão mostradas em vermelho (conectando os 4 vértices)
+
+### 2️⃣ **DIJKSTRA - Caminho Mais Curto**
+
+**O que faz:**
+* Encontra o caminho de distância mínima começando do **vértice 0**
+* Destino final é o **último vértice criado**
+* Para a execução assim que atinge o destino (otimizado)
+
+**Visualização:**
+* Durante a execução: Arestas em processamento ficam **VERMELHAS**
+* Quando termina: Apenas o **caminho ótimo** é mostrado em **VERDE** 🟢
+* Outras arestas desaparecem
+* Console mostra: Caminho completo e distância total
+
+**Configuração:**
+* Delay: 0.5 segundos entre cada passo
+* Útil para GPS, roteamento de rede, planejamento de rotas
+
+**Exemplo prático:**
+- Crie 3 vértices em linha (0, 1, 2)
+- Ajuste pesos: 0→1 = 5, 1→2 = 3
+- Clique em DIJKSTRA
+- Verá o caminho 0 → 1 → 2 em verde com distância total de 8
+
+### 3️⃣ **NÚMERO CROMÁTICO - Coloração de Grafo**
+
+**O que faz:**
+* Colore os vértices com o **mínimo de cores possíveis**
+* Garante que nenhum vértice vizinho tenha a mesma cor
+* Algoritmo guloso (não necessariamente ótimo, mas eficiente)
+
+**Visualização:**
+* Cada vértice é colorido progressivamente com uma cor diferente
+* Paleta de 10 cores:
+  - 🔴 Vermelho
+  - 🔵 Azul
+  - 🟢 Verde
+  - 🟡 Amarelo
+  - 🟣 Magenta
+  - 🟦 Cyan
+  - 🟠 Orange
+  - 🟪 Purple
+  - 🟩 Lime
+  - 🟥 Maroon
+* Console mostra: Número de cores necessárias ao final
+
+**Configuração:**
+* Delay: 0.5 segundos entre cada vértice
+* Útil para problemas de alocação de recursos (horários, frequências, etc)
+
+**Exemplo prático:**
+- Crie um triângulo (3 vértices conectados)
+- Clique em NÚMERO CROMÁTICO
+- Verá 3 cores diferentes (uma para cada vértice)
+- Para um quadrado: apenas 2 cores serão necessárias
 
 ---
 
@@ -19,122 +134,256 @@ O editor possui uma interface gráfica customizada dividida em painéis e botõe
 
 O projeto utiliza o modelo de **Lista de Adjacência** para representar o grafo na memória.
 
-### Estruturas do Grafo na Memória (RAM)
+### Estruturas Principais
 Definidas em `graphh.h`:
 
 ```c
-// Representa uma conexão (aresta) na lista ligada de um vértice.
+// Representa uma conexão (aresta) na lista ligada de um vértice
 typedef struct Edge {
-	int index_dest;   // Índice do vértice de destino no array principal.
-	int weight;       // Peso da aresta.
-	float thick;      // Espessura da linha (para renderização visual).
-	struct Edge *next;// Ponteiro para a próxima aresta da lista (encadeamento).
+    int index_dest;      // Índice do vértice de destino
+    int weight;          // Peso da aresta (0-99)
+    float thick;         // Espessura visual da linha
+    bool in_mst;         // Flag: está na AGM ou caminho mais curto?
+    struct Edge *next;   // Próxima aresta da lista encadeada
 } Edge_t;
 
-// Representa um nó (vértice) do grafo.
+// Representa um vértice (nó) do grafo
 typedef struct Vertex {
-	char label[50];   // Rótulo textual do vértice (ex: "Vertice 0").
-	float radius;     // Raio do círculo desenhado na tela.
-	Edge_t* head;     // Ponteiro para o início da lista ligada de arestas.
-	Vector2 position; // Posição (X, Y) na tela.
-	Color color;      // Cor atual do vértice (muda durante as animações de busca).
+    char label[50];      // Rótulo (ex: "Vértice 0")
+    float radius;        // Raio do círculo visual
+    Edge_t* head;        // Primeira aresta conectada
+    Vector2 position;    // Coordenadas X, Y na tela
+    Color color;         // Cor atual (muda conforme algoritmos)
 } Vertex_t;
 
-// A estrutura principal que encapsula o grafo inteiro.
+// Estrutura principal do grafo
 typedef struct Graph {
-	int num_vertex;   // Quantidade atual de vértices criados.
-	int capacity;     // Capacidade máxima alocada atualmente (cresce via realloc).
-	Vertex_t** array; // Array dinâmico de ponteiros para os vértices.
+    int num_vertex;      // Total de vértices
+    int capacity;        // Capacidade máxima alocada
+    Vertex_t** array;    // Array de ponteiros para vértices
 } Graph_t;
-
 ```
 
-### Estruturas de Persistência (Disco)
-Projetadas com tamanhos fixos para serialização (salvar/carregar arquivos .graph binários).
-Definidas em `graphh.h`:
+### Estruturas dos Algoritmos
 
 ```c
-// Cabeçalho do arquivo salvo.
-typedef struct Header {
-	char header_name[5]; // Assinatura do arquivo (ex: "GRAPH").
-	int qtd_vertex;      // Total de vértices salvos.
-	int qtd_edges;       // Total de arestas salvas.
-} Header_t;
+// Estado do Kruskal para execução passo a passo
+typedef struct KruskalState {
+    KruskalEdge_t* edges;    // Array de arestas ordenadas por peso
+    int* parent;             // Array Union-Find
+    int* rank;               // Ranks para otimização Union-Find
+    int edge_count;          // Total de arestas
+    int current_edge;        // Aresta sendo processada
+    int mst_weight;          // Peso total acumulado
+    bool finished;           // Algoritmo terminou?
+} KruskalState_t;
 
-// Representação de uma aresta para o arquivo em disco.
-typedef struct EdgeDisk {
-	int vertex;       // Índice do vértice de origem.
-	int index_dest;   // Índice do vértice de destino.
-	int weight;       // Peso da aresta.
-	float thick;      // Espessura visual.
-} EdgeDisk_t;
+// Estado do Dijkstra para execução passo a passo
+typedef struct DijkstraState {
+    int* distance;           // Menor distância até cada vértice
+    bool* visited;           // Vértices já processados
+    int* parent;             // Pais no caminho mais curto
+    int source;              // Vértice de origem (sempre 0)
+    int destination;         // Vértice de destino (último vértice)
+    int current_vertex;      // Vértice processado agora
+    int vertices_processed;  // Contador
+    int num_vertex;          // Total de vértices
+    bool finished;           // Algoritmo terminou?
+} DijkstraState_t;
 
-// Representação de um vértice sem ponteiros, para salvar em disco.
-typedef struct VertexDisk {
-	char label[50];      // Rótulo.
-	unsigned int color;  // Cor aglutinada.
-	unsigned char r, g, b, a; // Componentes RGBA da cor separadas.
-	float radius;        // Raio do círculo.
-	float x, y;          // Posições no eixo cartesiano da tela.
-} VertexDisk_t;
-
+// Estado do Número Cromático para execução passo a passo
+typedef struct ChromaticState {
+    int* color;              // Cor de cada vértice (-1 = sem cor)
+    int num_colors;          // Total de cores usadas
+    int num_vertex;          // Total de vértices
+    int current_vertex;      // Vértice sendo colorido
+    bool finished;           // Algoritmo terminou?
+} ChromaticState_t;
 ```
 
-### Estruturas de Persistência (Disco)
-Projetadas com tamanhos fixos para serialização (salvar/carregar arquivos .graph binários).
-Definidas em `queue.h` e `stack.h`:
+---
 
-```c
-// Fila Circular (para a Busca em Largura - BFS).
-typedef struct Queue {
-	int start;        // Índice do início da fila.
-	int end;          // Índice do fim da fila.
-	int capacity;     // Tamanho máximo (baseado no total de vértices).
-	int* pArr;        // Array de inteiros para guardar os índices dos vértices.
-} Queue_t;
+## 📁 Estrutura do Projeto
 
-// Pilha Dinâmica (para a Busca em Profundidade - DFS).
-typedef struct Stack {
-    int top;          // Índice do topo da pilha (-1 se vazia).
-    int capacity;     // Capacidade atual da pilha.
-    int* pArr;        // Array de inteiros para guardar os índices empilhados.
-} Stack_t;
+### Arquivos Principais
 
+| Arquivo | Responsabilidade |
+|---------|-----------------|
+| `main.c` | Loop principal, interface, máquinas de estado dos algoritmos |
+| `graph.c` | Lógica dos algoritmos (Kruskal, Dijkstra, Cromático) |
+| `graphh.h` | Definições de structs e declarações globais |
+| `gui.c` | Renderização visual, salvamento e carregamento |
+| `gui.h` | Declarações de funções da GUI |
+| `queue.c` / `queue.h` | Implementação de fila (BFS) |
+| `stack.c` / `stack.h` | Implementação de pilha (DFS) |
+| `logo.png` | Ícone da aplicação |
+
+### Executável
+
+O programa já está compilado e pronto para usar:
+```
+Graph/x64/Release/Graph.exe
 ```
 
-### 1. Núcleo do Grafo (`graph.c` e `graphh.h`)
-Responsável por toda a matemática e manipulação de memória da estrutura de dados.
+Para executar, clique duas vezes ou use:
+```bash
+./Graph.exe
+```
 
-* **`create_graph(int initial_capacity)`:** Aloca o array de ponteiros principal.
-* **`add_vertex(...)`:** Cria um novo vértice. Utiliza `realloc` automaticamente se o limite do array for atingido, garantindo crescimento dinâmico.
-* **`add_edge(...)`:** Adiciona uma aresta direcionada conectando um vértice de origem a um de destino.
-* **`print_ordered_pairs(...)`:** Imprime a lista de adjacência no console (usado para debug).
-* **`dfs(...)`:** Executa um passo da Busca em Profundidade desempilhando o nó atual e empilhando os vizinhos não visitados, alterando suas cores.
-* **`bfs(...)`:** Executa a Busca em Largura de forma instantânea (sem delay visual).
-* **`bfs_step(...)`:** Executa um único passo da Busca em Largura usando a fila. Fundamental para a animação "frame a frame" na interface.
-* **`start_bfs(...)`:** Função auxiliar (wrapper) para inicializar a fila e iniciar o processo de BFS completo no console.
-* **`get_degree(...)`:** Retorna o grau de um vértice (quantas arestas ele possui).
-* **`count_odd_vertices(...)`:** Retorna a quantidade de vértices com grau ímpar.
-* **`isEulerian(...)`:** Verifica se existe um ciclo Euleriano (0 vértices de grau ímpar).
-* **`isUnicursal(...)`:** Verifica se existe um caminho Euleriano (exatamente 2 vértices de grau ímpar).
-* **`isTree(...)`:** Verifica simultaneamente se o grafo é conexo (usando BFS) e se o número de arestas obedece a regra $E = V - 1$.
-* **`count_edges(...)`:** Retorna o total de arestas do grafo inteiro dividindo por 2 (assumindo grafo não-direcionado nas renderizações).
-* **`edge_exists(...)`:** Checa se já existe conexão entre dois vértices específicos.
-* **`complete_graph(...)`:** Percorre todos os vértices e adiciona as arestas faltantes para torná-lo um grafo totalmente conexo (todos ligados a todos).
+---
 
-### 2. Interface e Persistência (`gui.c` e `gui.h`)
-* **`check_collision(...)`:** Checa se o mouse está pairando sobre algum vértice (com margem de segurança de 5 pixels).
-* **`get_vertex_by_position(...)`:** Retorna o índice exato do vértice que foi clicado.
-* **`DrawGridBackground(...)`:** Função puramente visual que renderiza as linhas de grade cinza claro.
-* **`clean_graph(...)`:** Reseta a cor de todos os vértices para `PINK`, limpando as marcações azuis deixadas pelas buscas DFS/BFS.
-* **`save_graph(...)`:** Grava o estado atual do grafo em disco (`test.graph`) abrindo um fluxo binário (`wb`) e salvando primeiro o header, depois os vértices de disco e, por fim, as arestas de disco.
-* **`load_graph_debug(...)`:** Lê o arquivo binário (`rb`) e reconstrói o grafo completamente na memória usando `add_vertex` e `add_edge`.
+## 💡 Exemplos de Uso
 
-### 3. Loop Principal (`main.c`)
-* É a alma da aplicação. Inicializa a janela `1780x1000` a `60 FPS`.
-* Controla as "máquinas de estado" das buscas (variáveis como `isDfsRunning`, `dfsTimer`, `dfsDelay`) para criar o efeito de delay visual agradável.
-* Renderiza as linhas das arestas e textos (`DrawLineEx`, `DrawText`) conectando os centros dos círculos.
-* Mantém o gerenciamento dinâmico de cliques nas bounding boxes (retângulos virtuais) dos botões do menu lateral esquerdo.
+### Exemplo 1: Árvore Geradora Mínima
+```
+1. Crie um grafo com 4 vértices em forma de quadrado
+2. Conecte todos os vértices:
+   - 0 ↔ 1 (peso 5)
+   - 1 ↔ 2 (peso 3)
+   - 2 ↔ 3 (peso 4)
+   - 3 ↔ 0 (peso 2)
+   - 0 ↔ 2 (peso 7)
+   - 1 ↔ 3 (peso 6)
+3. Clique no botão AGM
+4. Observarão 3 arestas em VERMELHO com peso total de 9
+5. Console mostra: Aresta 3-0 (2), Aresta 1-2 (3), Aresta 1-0 (5)
+```
 
-### 4. Estruturas Auxiliares (`queue.c` e `stack.c`)
-* Métodos clássicos implementados em C puro: `enqueue`, `dequeue`, `push`, `pop`, `isFull`, `isEmpty`. Ambas possuem a função de destroy para limpar corretamente as alocações da heap (evitando vazamento de memória) após a finalização da busca visual no mapa.
+### Exemplo 2: Caminho Mais Curto
+```
+1. Crie 4 vértices em linha: 0, 1, 2, 3
+2. Configure pesos:
+   - 0 → 1 = 2
+   - 1 → 2 = 3
+   - 2 → 3 = 1
+   - 0 → 3 = 10 (caminho direto mais caro)
+3. Clique em DIJKSTRA
+4. O caminho 0 → 1 → 2 → 3 aparecerá em VERDE
+5. Distância total: 6 (melhor que o caminho direto de 10)
+```
+
+### Exemplo 3: Colorir Grafo
+```
+1. Crie um triângulo (3 vértices todos conectados)
+2. Clique em NÚMERO CROMÁTICO
+3. Cada vértice recebe uma cor diferente (precisam 3 cores)
+4. Crie um quadrado (4 vértices conectados em ciclo)
+5. Clique em NÚMERO CROMÁTICO
+6. Apenas 2 cores são suficientes (alternando)
+```
+
+---
+
+## 🎯 Casos de Uso Práticos
+
+| Algoritmo | Aplicação Real | Exemplo |
+|-----------|---------------|---------|
+| **AGM (Kruskal)** | Redes de infraestrutura | Conectar cidades com estradas/fibra com custo mínimo |
+| **Dijkstra** | Navegação GPS | Encontrar rota mais rápida de A para B |
+| **Número Cromático** | Agendamento | Agendar aulas sem conflitos (cada aula = cor) |
+| **DFS/BFS** | Busca em estruturas | Explorar labirintos ou árvores de diretórios |
+
+---
+
+## 🎨 Cores e Legenda Visual
+
+### Durante os Algoritmos
+- 🔴 **VERMELHO**: Arestas sendo processadas ou na AGM
+- 🟢 **VERDE**: Caminho final encontrado (Dijkstra)
+- 🔵 **AZUL**: Vértices visitados (DFS/BFS)
+- 🔴🔵🟢🟡🟣: Colores variadas (Número Cromático)
+
+### Estados das Arestas
+- **Cinza**: Aresta normal
+- **VERMELHO** (AGM): Aresta selecionada para a árvore mínima
+- **VERDE** (Dijkstra): Aresta no caminho mais curto
+- **Desaparece**: Quando AGM/Dijkstra termina e oculta as outras arestas
+
+---
+
+## ⚙️ Configurações e Limites
+
+| Parâmetro | Valor | Descrição |
+|-----------|-------|-----------|
+| **Peso mínimo** | 0 | Limite inferior para peso de arestas |
+| **Peso máximo** | 99 | Limite superior para peso de arestas |
+| **Delay DFS/BFS** | 0.5 s | Tempo entre passos da busca |
+| **Delay AGM** | 0.5 s | Tempo entre passos do Kruskal |
+| **Delay Dijkstra** | 0.5 s | Tempo entre passos do Dijkstra |
+| **Delay Cromático** | 0.5 s | Tempo entre colorações |
+| **Cores máximas** | 10 | Paleta visual disponível |
+| **Vértices recomendados** | até 50 | Para fluidez ótima |
+
+---
+
+## 🔒 Gerenciamento de Memória
+
+O projeto usa **C puro** sem vazamentos:
+- ✅ Alocação dinâmica com `malloc()` e `realloc()`
+- ✅ Liberação com `free()` ao finalizar
+- ✅ Funções específicas: `Kruskal_free()`, `Dijkstra_free()`, `Chromatic_free()`
+- ✅ Limpeza de estruturas auxiliares: `destroy_queue()`, `destroy_stack()`
+
+---
+
+## 📝 Notas Importantes
+
+⚠️ **AGM e Dijkstra:**
+- Ambos usam o flag `in_mst` das arestas para marcar seleção
+- Quando você clica em "LIMPAR TELA", este flag é resetado
+
+⚠️ **Número Cromático:**
+- Algoritmo guloso (não garante solução ótima)
+- Funciona para grafos conexos ou desconexos
+- Máximo de 10 cores visualmente
+
+⚠️ **Dijkstra:**
+- Sempre começa do vértice **0**
+- Sempre termina no **último vértice criado**
+- Pausa assim que atinge o destino (otimização)
+
+⚠️ **Remoção de Vértices:**
+- Ao remover um vértice, os índices dos vizinhos são automaticamente atualizados
+- Todas as arestas conectadas são removidas
+
+⚠️ **Performance:**
+- Recomendado até 50 vértices para máxima fluidez
+- Com 100+ vértices, a renderização pode ficar mais lenta
+
+---
+
+## 📚 Referências Matemáticas
+
+- **Algoritmo de Kruskal:** https://en.wikipedia.org/wiki/Kruskal%27s_algorithm
+- **Algoritmo de Dijkstra:** https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
+- **Coloração de Grafos:** https://en.wikipedia.org/wiki/Graph_coloring
+- **Busca em Profundidade (DFS):** https://en.wikipedia.org/wiki/Depth-first_search
+- **Busca em Largura (BFS):** https://en.wikipedia.org/wiki/Breadth-first_search
+
+---
+
+## 🛠️ Funções Principais em `graph.c`
+
+### Algoritmos com Visualização
+- `Kruskal_init()` - Inicializa o estado do Kruskal
+- `Kruskal_step()` - Processa um passo do Kruskal
+- `Dijkstra_init()` - Inicializa o Dijkstra
+- `Dijkstra_step()` - Processa um passo do Dijkstra
+- `Chromatic_init()` - Inicializa o Número Cromático
+- `Chromatic_step()` - Colore um vértice
+
+### Operações Básicas
+- `create_graph()` - Cria um novo grafo
+- `add_vertex()` - Adiciona um vértice
+- `add_edge()` - Adiciona uma aresta
+- `remove_vertex()` - Remove um vértice
+- `remove_edge()` - Remove uma aresta
+- `complete_graph()` - Torna o grafo completo
+
+### Análise de Propriedades
+- `isTree()` - Verifica se é árvore
+- `isEulerian()` - Verifica se é Euleriano
+- `isUnicursal()` - Verifica se é Unicursal
+- `count_edges()` - Conta arestas
+
+---
